@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角函数正负号大师</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .serif {
+            font-family: "Times New Roman", "Noto Serif SC", serif;
+        }
+        /* Custom scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Inline Icon Components
+        const BookOpen = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        );
+        const HelpCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        );
+        const Check = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>
+        );
+        const X = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+        const RefreshCw = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        );
+        const ChevronRight = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"></polyline></svg>
+        );
+        const PieChart = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+        );
+        const Activity = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        );
+        const Circle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle></svg>
+        );
+
+        const TrigTool = () => {
+            const [mode, setMode] = React.useState('study'); 
+            const [viewType, setViewType] = React.useState('quadrant'); 
+            const [selectedFunc, setSelectedFunc] = React.useState('sin');
+            const [quizState, setQuizState] = React.useState({
+                func: 'sin',
+                quadrant: 1,
+                answered: false,
+                correct: false,
+                streak: 0
+            });
+
+            // Function data mapping (Converted to Simplified Chinese)
+            const funcData = {
+                sin: { 
+                    name: 'sin', 
+                    label: 'y', 
+                    defEquation: 'y = \\sin \\theta', 
+                    waveEquation: 'y = \\sin x', 
+                    desc: 'y 坐标 (上正下负)', 
+                    signs: ['+', '+', '-', '-'] 
+                },
+                cos: { 
+                    name: 'cos', 
+                    label: 'x', 
+                    defEquation: 'x = \\cos \\theta', 
+                    waveEquation: 'y = \\cos x', 
+                    desc: 'x 坐标 (右正左负)', 
+                    signs: ['+', '-', '-', '+'] 
+                },
+                tan: { 
+                    name: 'tan', 
+                    label: 'm', 
+                    defEquation: 'm = \\tan \\theta', 
+                    waveEquation: 'y = \\tan x', 
+                    desc: '斜率 m (增正减负)', 
+                    signs: ['+', '-', '+', '-'] 
+                }
+            };
+
+            const quadrants = [
+                { id: 1, label: 'I', x: 50, y: -50 },
+                { id: 2, label: 'II', x: -50, y: -50 },
+                { id: 3, label: 'III', x: -50, y: 50 },
+                { id: 4, label: 'IV', x: 50, y: 50 }
+            ];
+
+            const getSign = (func, quadId) => {
+                return funcData[func].signs[quadId - 1];
+            };
+
+            const generateQuestion = () => {
+                const funcs = ['sin', 'cos', 'tan'];
+                const randomFunc = funcs[Math.floor(Math.random() * funcs.length)];
+                const randomQuad = Math.floor(Math.random() * 4) + 1;
+                
+                setQuizState(prev => ({
+                    ...prev,
+                    func: randomFunc,
+                    quadrant: randomQuad,
+                    answered: false,
+                    correct: false
+                }));
+            };
+
+            const handleQuizAnswer = (sign) => {
+                const correctSign = getSign(quizState.func, quizState.quadrant);
+                const isCorrect = sign === correctSign;
+                
+                setQuizState(prev => ({
+                    ...prev,
+                    answered: true,
+                    correct: isCorrect,
+                    streak: isCorrect ? prev.streak + 1 : 0
+                }));
+            };
+
+            React.useEffect(() => {
+                if (mode === 'quiz') {
+                    generateQuestion();
+                    setViewType('quadrant'); 
+                }
+            }, [mode]);
+
+            // Generate Path for Wave Graph (-180 to 270)
+            const generateWavePath = (func) => {
+                let path = "";
+                const amplitude = 40;
+                const startDeg = -180;
+                const endDeg = 270;
+                const centerY = 0;
+                const step = 1; 
+
+                if (func === 'tan') {
+                    // Tighter asymptotes
+                    const segments = [
+                        { start: -180, end: -92 }, 
+                        { start: -88, end: 88 },   
+                        { start: 92, end: 268 },   
+                    ];
+                    
+                    return segments.map((seg, i) => {
+                        let d = `M ${seg.start} ${centerY - Math.max(-75, Math.min(75, Math.tan(seg.start * Math.PI / 180) * 15))}`;
+                        for (let x = seg.start + step; x <= seg.end; x+=step) {
+                            let val = Math.tan(x * Math.PI / 180) * 15;
+                            let y = Math.max(-85, Math.min(85, val));
+                            d += ` L ${x} ${centerY - y}`;
+                        }
+                        return <path key={i} d={d} fill="none" stroke="#4f46e5" strokeWidth="3" />;
+                    });
+                } else {
+                    path = `M ${startDeg} ${centerY - (func === 'sin' ? Math.sin(startDeg * Math.PI/180) : Math.cos(startDeg * Math.PI/180)) * amplitude}`;
+                    for (let x = startDeg + step; x <= endDeg; x+=step) {
+                        const val = func === 'sin' ? Math.sin(x * Math.PI / 180) : Math.cos(x * Math.PI / 180);
+                        path += ` L ${x} ${centerY - val * amplitude}`;
+                    }
+                    return <path d={path} fill="none" stroke="#4f46e5" strokeWidth="3" />;
+                }
+            };
+
+            const renderLatexEquation = (eq) => {
+                const parts = eq.split(' ');
+                return (
+                    <span className="serif text-2xl italic text-slate-800">
+                        {parts.map((part, i) => {
+                            if (part === '\\sin') return <span key={i} style={{ fontStyle: 'normal' }}>sin</span>;
+                            if (part === '\\cos') return <span key={i} style={{ fontStyle: 'normal' }}>cos</span>;
+                            if (part === '\\tan') return <span key={i} style={{ fontStyle: 'normal' }}>tan</span>;
+                            if (part === '\\theta') return <span key={i}>&theta;</span>;
+                            return <span key={i}>{part} </span>;
+                        })}
+                    </span>
+                );
+            };
+
+            const renderDefinitionVisuals = () => {
+                if (selectedFunc === 'cos') {
+                    return (
+                        <g>
+                            <rect x="0" y="-120" width="120" height="240" fill="#dcfce7" opacity="0.4" />
+                            <text x="70" y="-50" textAnchor="middle" className="text-sm font-bold fill-green-700">x &gt; 0 (+)</text>
+                            
+                            <rect x="-120" y="-120" width="120" height="240" fill="#fee2e2" opacity="0.4" />
+                            <text x="-70" y="-50" textAnchor="middle" className="text-sm font-bold fill-red-700">x &lt; 0 (-)</text>
+                            
+                            <line x1="0" y1="0" x2="42" y2="0" stroke="#15803d" strokeWidth="4" />
+                            <line x1="42" y1="-5" x2="42" y2="5" stroke="#15803d" strokeWidth="2" />
+                        </g>
+                    );
+                } else if (selectedFunc === 'sin') {
+                    return (
+                        <g>
+                            <rect x="-120" y="-120" width="240" height="120" fill="#dcfce7" opacity="0.4" />
+                            <text x="70" y="-50" textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-green-700">y &gt; 0 (+)</text>
+                            
+                            <rect x="-120" y="0" width="240" height="120" fill="#fee2e2" opacity="0.4" />
+                            <text x="70" y="50" textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-red-700">y &lt; 0 (-)</text>
+                            
+                            <line x1="0" y1="0" x2="0" y2="-42" stroke="#15803d" strokeWidth="4" />
+                            <line x1="-5" y1="-42" x2="5" y2="-42" stroke="#15803d" strokeWidth="2" />
+                        </g>
+                    );
+                } else {
+                    return (
+                        <g>
+                            <rect x="0" y="-120" width="120" height="120" fill="#dcfce7" opacity="0.4" />
+                            <rect x="-120" y="0" width="120" height="120" fill="#dcfce7" opacity="0.4" />
+                            <rect x="-120" y="-120" width="120" height="120" fill="#fee2e2" opacity="0.4" />
+                            <rect x="0" y="0" width="120" height="120" fill="#fee2e2" opacity="0.4" />
+                            
+                            <line x1="-80" y1="80" x2="80" y2="-80" stroke="#15803d" strokeWidth="2" strokeDasharray="5,5" />
+                            {/* Adjusted position m>0, m<0 */}
+                            <text x="90" y="-50" textAnchor="middle" className="text-sm fill-green-700 font-bold bg-white/50 px-1 rounded">m &gt; 0</text>
+                            
+                            <line x1="-80" y1="-80" x2="80" y2="80" stroke="#b91c1c" strokeWidth="2" strokeDasharray="5,5" />
+                            {/* Adjusted position m>0, m<0 */}
+                            <text x="-90" y="-50" textAnchor="middle" className="text-sm fill-red-700 font-bold bg-white/50 px-1 rounded">m &lt; 0</text>
+                        </g>
+                    );
+                }
+            };
+
+            const waveBackgrounds = [
+                { start: -180, end: -90, color: '#fefce8', label: 'III' },
+                { start: -90, end: 0, color: '#fef2f2', label: 'IV' }, 
+                { start: 0, end: 90, color: '#eff6ff', label: 'I' },    
+                { start: 90, end: 180, color: '#f0fdf4', label: 'II' }, 
+                { start: 180, end: 270, color: '#fefce8', label: 'III' }, 
+            ];
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 font-sans text-slate-800">
+                    
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold mb-2 text-slate-900 tracking-tight">三角函数正负号大师</h1>
+                        <p className="text-slate-500">可视化复习工具 & 自我测验</p>
+                    </div>
+
+                    <div className="bg-white p-1 rounded-lg shadow-sm border border-slate-200 mb-6 flex">
+                        <button
+                            onClick={() => setMode('study')}
+                            className={`flex items-center px-6 py-2 rounded-md transition-all ${
+                                mode === 'study' 
+                                    ? 'bg-indigo-600 text-white shadow-sm' 
+                                    : 'text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                            <BookOpen size={18} className="mr-2" />
+                            图解学习
+                        </button>
+                        <button
+                            onClick={() => setMode('quiz')}
+                            className={`flex items-center px-6 py-2 rounded-md transition-all ${
+                                mode === 'quiz' 
+                                    ? 'bg-indigo-600 text-white shadow-sm' 
+                                    : 'text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                            <HelpCircle size={18} className="mr-2" />
+                            测验模式
+                        </button>
+                    </div>
+
+                    {/* Added pb-6 for footer space */}
+                    <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden relative pb-6">
+                        
+                        {/* VIEW TYPE TOGGLE - ENLARGED (First Row) */}
+                        {mode === 'study' && (
+                            <div className="flex justify-center py-3 bg-slate-50 border-b border-slate-100 gap-3 px-3 overflow-x-auto no-scrollbar">
+                                <button
+                                    onClick={() => setViewType('quadrant')}
+                                    className={`flex items-center px-4 py-2 rounded-lg text-base font-bold whitespace-nowrap transition-all ${
+                                        viewType === 'quadrant' 
+                                        ? 'bg-white text-indigo-600 shadow-md border border-indigo-100 transform scale-105' 
+                                        : 'text-slate-500 hover:text-indigo-600 hover:bg-white/50'
+                                    }`}
+                                >
+                                    <PieChart size={18} className="mr-2" /> 象限图
+                                </button>
+                                <button
+                                    onClick={() => setViewType('definition')}
+                                    className={`flex items-center px-4 py-2 rounded-lg text-base font-bold whitespace-nowrap transition-all ${
+                                        viewType === 'definition' 
+                                        ? 'bg-white text-indigo-600 shadow-md border border-indigo-100 transform scale-105' 
+                                        : 'text-slate-500 hover:text-indigo-600 hover:bg-white/50'
+                                    }`}
+                                >
+                                    <Circle size={18} className="mr-2" /> 定义图
+                                </button>
+                                <button
+                                    onClick={() => setViewType('wave')}
+                                    className={`flex items-center px-4 py-2 rounded-lg text-base font-bold whitespace-nowrap transition-all ${
+                                        viewType === 'wave' 
+                                        ? 'bg-white text-indigo-600 shadow-md border border-indigo-100 transform scale-105' 
+                                        : 'text-slate-500 hover:text-indigo-600 hover:bg-white/50'
+                                    }`}
+                                >
+                                    <Activity size={18} className="mr-2" /> 函数图
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Function Selector (Second Row) */}
+                        {mode === 'study' && (
+                            <div className="flex border-b border-slate-100">
+                                {['sin', 'cos', 'tan'].map((f) => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setSelectedFunc(f)}
+                                        className={`flex-1 py-4 text-sm font-semibold uppercase tracking-wider transition-colors ${
+                                            selectedFunc === f
+                                                ? 'bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600'
+                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <span className="serif italic" style={{fontStyle: 'normal'}}>{f}</span>
+                                        <span className="serif italic"> x</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {mode === 'quiz' && (
+                            <div className="flex justify-between items-center px-6 py-4 bg-indigo-50 border-b border-indigo-100">
+                                <span className="text-sm font-medium text-indigo-900">
+                                    连胜: <span className="font-bold text-indigo-600 text-lg">{quizState.streak}</span> 🔥
+                                </span>
+                                <button 
+                                    onClick={generateQuestion}
+                                    className="p-2 hover:bg-indigo-100 rounded-full text-indigo-600 transition-colors"
+                                    title="Skip Question"
+                                >
+                                    <RefreshCw size={16} />
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="aspect-square w-full relative bg-white overflow-hidden">
+                            
+                            {(viewType === 'quadrant' || viewType === 'definition' || mode === 'quiz') && (
+                                <div className="w-full h-full p-8 flex items-center justify-center relative">
+                                    
+                                    {mode === 'study' && viewType === 'definition' && (
+                                        <div className="absolute top-12 left-0 right-0 flex flex-col items-center pointer-events-none z-10">
+                                            <div className="bg-white/95 backdrop-blur-sm px-5 py-2 rounded-xl shadow-md border border-slate-100 mb-1">
+                                                {renderLatexEquation(funcData[selectedFunc].defEquation)}
+                                            </div>
+                                            <span className="text-xs text-slate-500 font-bold bg-white/80 px-2 rounded">
+                                                {funcData[selectedFunc].desc}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <svg viewBox="-120 -120 240 240" className="w-full h-full select-none">
+                                        <defs>
+                                            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                                                <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
+                                            </marker>
+                                        </defs>
+
+                                        {mode === 'study' && viewType === 'definition' && renderDefinitionVisuals()}
+
+                                        <circle cx="0" cy="0" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4" />
+
+                                        <line x1="-100" y1="0" x2="100" y2="0" stroke="#cbd5e1" strokeWidth="1.5" markerEnd="url(#arrow)" />
+                                        <line x1="0" y1="100" x2="0" y2="-100" stroke="#cbd5e1" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+                                        <text x="105" y="5" className="fill-slate-400 text-[10px] serif italic">x</text>
+                                        <text x="-10" y="-105" className="fill-slate-400 text-[10px] serif italic">y</text>
+
+                                        {viewType === 'quadrant' && mode === 'study' && (
+                                            <g transform="translate(0, 0)">
+                                                <rect x="-35" y="-15" width="70" height="30" fill="white" className="opacity-90" rx="4" />
+                                                <text 
+                                                    x="0" 
+                                                    y="0" 
+                                                    textAnchor="middle" 
+                                                    dominantBaseline="middle" 
+                                                    className="text-2xl fill-slate-800 serif"
+                                                >
+                                                    <tspan style={{ fontStyle: 'normal' }}>{funcData[selectedFunc].name}</tspan> 
+                                                    <tspan style={{ fontStyle: 'italic' }} dx="4"> x</tspan>
+                                                </text>
+                                            </g>
+                                        )}
+                                        
+                                        {mode === 'quiz' && (
+                                            <g transform="translate(0, 0)">
+                                                <rect x="-35" y="-15" width="70" height="30" fill="white" className="opacity-90" rx="4" />
+                                                <text 
+                                                    x="0" 
+                                                    y="0" 
+                                                    textAnchor="middle" 
+                                                    dominantBaseline="middle" 
+                                                    className="text-2xl fill-slate-800 serif"
+                                                >
+                                                    {quizState.answered ? (
+                                                        <React.Fragment>
+                                                            <tspan style={{ fontStyle: 'normal' }}>{funcData[quizState.func].name}</tspan> 
+                                                            <tspan style={{ fontStyle: 'italic' }} dx="4"> x</tspan>
+                                                        </React.Fragment>
+                                                    ) : (
+                                                        <React.Fragment>
+                                                            <tspan style={{ fontStyle: 'normal' }}>{quizState.func}</tspan> 
+                                                            <tspan style={{ fontStyle: 'italic' }} dx="4"> ?</tspan>
+                                                        </React.Fragment>
+                                                    )}
+                                                </text>
+                                            </g>
+                                        )}
+
+                                        {(viewType === 'quadrant' || mode === 'quiz') && quadrants.map((quad) => {
+                                            let showContent = true;
+                                            let isHighlight = false;
+                                            let content = '';
+                                            let color = '#334155'; 
+
+                                            if (mode === 'study') {
+                                                content = getSign(selectedFunc, quad.id);
+                                                color = content === '+' ? '#dc2626' : '#1e293b';
+                                            } else {
+                                                if (quizState.quadrant === quad.id) {
+                                                    isHighlight = true;
+                                                    if (quizState.answered) {
+                                                        content = getSign(quizState.func, quad.id);
+                                                        color = quizState.correct ? '#16a34a' : '#dc2626';
+                                                    } else {
+                                                        content = '?';
+                                                        color = '#6366f1'; 
+                                                    }
+                                                } else {
+                                                    showContent = false; 
+                                                }
+                                            }
+
+                                            return (
+                                                <g key={quad.id} className="transition-all duration-300">
+                                                    {isHighlight && !quizState.answered && (
+                                                        <circle cx={quad.x} cy={quad.y} r="25" fill="#e0e7ff" className="animate-pulse opacity-50" />
+                                                    )}
+                                                    
+                                                    {showContent && (
+                                                        <text 
+                                                            x={quad.x} 
+                                                            y={quad.y} 
+                                                            textAnchor="middle" 
+                                                            dominantBaseline="middle" 
+                                                            className="font-light serif"
+                                                            fill={color}
+                                                            style={{ 
+                                                                fontSize: '64px', 
+                                                                fontWeight: 'bold'
+                                                            }}
+                                                        >
+                                                            {content}
+                                                        </text>
+                                                    )}
+                                                    
+                                                    <text 
+                                                        x={quad.x > 0 ? 85 : -85} 
+                                                        y={quad.y > 0 ? 85 : -85} 
+                                                        textAnchor="middle" 
+                                                        dominantBaseline="middle" 
+                                                        className="fill-slate-400 font-serif font-bold select-none"
+                                                        style={{ fontSize: '24px', opacity: 1 }}
+                                                    >
+                                                        {quad.label}
+                                                    </text>
+                                                </g>
+                                            );
+                                        })}
+                                    </svg>
+                                </div>
+                            )}
+
+                            {viewType === 'wave' && mode === 'study' && (
+                                <div className="w-full h-full p-2 flex flex-col items-center justify-center relative">
+                                    
+                                    <div className="absolute top-4 bg-white/80 px-4 py-2 rounded-xl border border-slate-100 shadow-sm z-10">
+                                        {renderLatexEquation(funcData[selectedFunc].waveEquation)}
+                                    </div>
+
+                                    <svg viewBox="-200 -80 490 160" className="w-full h-full select-none">
+                                        
+                                        {waveBackgrounds.map((bg, idx) => (
+                                            <g key={idx}>
+                                                <rect x={bg.start} y="-80" width={bg.end - bg.start} height="160" fill={bg.color} />
+                                                <text 
+                                                    x={bg.start + (bg.end - bg.start)/2} 
+                                                    y="-65" 
+                                                    textAnchor="middle" 
+                                                    className="fill-slate-400 text-[10px] font-bold opacity-60"
+                                                >
+                                                    {bg.label}
+                                                </text>
+                                            </g>
+                                        ))}
+
+                                        <line x1="-180" y1="0" x2="290" y2="0" stroke="#64748b" strokeWidth="1" markerEnd="url(#arrow)" />
+                                        <line x1="0" y1="70" x2="0" y2="-70" stroke="#64748b" strokeWidth="1" />
+
+                                        <text x="290" y="-5" className="fill-slate-500 text-[12px] serif italic">x</text>
+                                        <text x="5" y="-70" className="fill-slate-500 text-[12px] serif italic">y</text>
+                                        
+                                        {[-180, -90, 90, 180, 270].map(deg => (
+                                            <g key={deg}>
+                                                <line x1={deg} y1="-3" x2={deg} y2="3" stroke="#94a3b8" strokeWidth="1"/>
+                                                <text x={deg} y="18" textAnchor="middle" className="fill-slate-400 text-[10px]">{deg}°</text>
+                                            </g>
+                                        ))}
+
+                                        {generateWavePath(selectedFunc)}
+
+                                    </svg>
+                                </div>
+                            )}
+
+                            {mode === 'quiz' && !quizState.answered && (
+                                <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-6">
+                                    <button
+                                        onClick={() => handleQuizAnswer('+')}
+                                        className="w-16 h-16 bg-white rounded-full shadow-lg border-2 border-slate-100 flex items-center justify-center text-3xl hover:bg-slate-50 hover:scale-105 transition-all text-red-600 font-serif font-bold"
+                                    >
+                                        +
+                                    </button>
+                                    <button
+                                        onClick={() => handleQuizAnswer('-')}
+                                        className="w-16 h-16 bg-white rounded-full shadow-lg border-2 border-slate-100 flex items-center justify-center text-3xl hover:bg-slate-50 hover:scale-105 transition-all text-slate-800 font-serif font-bold"
+                                    >
+                                        -
+                                    </button>
+                                </div>
+                            )}
+
+                            {mode === 'quiz' && quizState.answered && (
+                                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center z-10 animate-in fade-in duration-200">
+                                    <div className={`p-4 rounded-full mb-4 ${quizState.correct ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                        {quizState.correct ? <Check size={40} /> : <X size={40} />}
+                                    </div>
+                                    <p className="text-xl font-bold text-slate-800 mb-6">
+                                        {quizState.correct ? '答对了！' : '答错了！'}
+                                    </p>
+                                    <button
+                                        onClick={generateQuestion}
+                                        className="flex items-center px-8 py-3 bg-slate-900 text-white rounded-full hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                                    >
+                                        下一题 <ChevronRight size={20} className="ml-2" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Standardized Pill Footer - Moved outside the aspect-square container */}
+                        <div className="mt-8 flex justify-center">
+                            <div className="bg-white border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
+                                <img 
+                                    src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png" 
+                                    alt="Logo" 
+                                    className="w-6 h-6 object-contain rounded-full"
+                                />
+                                <span className="text-xs text-gray-500 font-medium tracking-wide">
+                                    微积分福音 卓永鸿老师制作
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TrigTool />);
+    </script>
+</body>
+</html>

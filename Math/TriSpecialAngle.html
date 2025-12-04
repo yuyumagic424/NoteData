@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角函数特殊角大师</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- KaTeX CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyFAMyFwxDvhtsa88gyTUG5mwGee3obwaI6C+kuY8b8UEVRjhri+enJrQmScq8" crossorigin="anonymous"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f0f9ff;
+        }
+        /* KaTeX adjustments */
+        .katex { font-size: 1.1em; }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white p-4 shadow-lg shrink-0 z-10">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M19 21v-8a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v8"/><path d="M9 10a5 5 0 0 1 10 0"/></svg>
+                三角函数特殊角大师
+            </h1>
+            <div class="flex bg-indigo-700 rounded-lg p-1 text-sm md:text-base">
+                <button onclick="switchTab('study')" id="btn-study" class="px-4 py-1.5 rounded-md bg-white text-indigo-700 font-medium transition-all shadow-sm">学习模式</button>
+                <button onclick="switchTab('quiz')" id="btn-quiz" class="px-4 py-1.5 rounded-md text-indigo-100 hover:text-white font-medium transition-all">自我测验</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 relative">
+        <div class="max-w-4xl mx-auto h-full">
+
+            <!-- STUDY TAB -->
+            <!-- Removed h-full to allow natural scrolling for the table -->
+            <div id="tab-study" class="flex flex-col gap-6 fade-in pb-8">
+                
+                <div class="grid md:grid-cols-2 gap-6 shrink-0">
+                    <!-- Unit Circle Canvas -->
+                    <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center relative">
+                        <h2 class="text-lg font-bold text-slate-600 mb-2 w-full text-center">单位圆互动图</h2>
+                        <div class="relative w-full aspect-square max-w-[320px]">
+                            <canvas id="unitCircle" width="320" height="320" class="cursor-pointer w-full h-full"></canvas>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2 text-center">点击圆上的红点可切换角度</p>
+                    </div>
+
+                    <!-- Info Panel -->
+                    <div class="bg-white p-6 rounded-2xl shadow-md flex flex-col justify-center">
+                        <div class="text-center mb-6">
+                            <span class="text-sm text-slate-500 uppercase tracking-wide font-bold">当前角度</span>
+                            <div class="flex justify-center items-end gap-3 mt-1">
+                                <span id="display-deg" class="text-5xl font-bold text-indigo-600">30°</span>
+                                <span id="display-rad" class="text-2xl text-slate-400"></span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                                <span class="font-bold text-indigo-800 text-lg" id="label-sin"></span>
+                                <span id="val-sin" class="text-xl font-bold text-indigo-600"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                                <span class="font-bold text-emerald-800 text-lg" id="label-cos"></span>
+                                <span id="val-cos" class="text-xl font-bold text-emerald-600"></span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                <span class="font-bold text-amber-800 text-lg" id="label-tan"></span>
+                                <span id="val-tan" class="text-xl font-bold text-amber-600"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reference Table (Modified to show full list without scroll) -->
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
+                    <div class="p-4 bg-slate-50 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-700">数值速查表</h3>
+                    </div>
+                    <div class="p-4">
+                        <table class="w-full text-center border-collapse">
+                            <thead>
+                                <tr class="text-slate-500 text-sm border-b-2 border-slate-100">
+                                    <th class="pb-2">角度</th>
+                                    <th class="pb-2">弧度</th>
+                                    <th class="pb-2 text-indigo-600">sin</th>
+                                    <th class="pb-2 text-emerald-600">cos</th>
+                                    <th class="pb-2 text-amber-600">tan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ref-table-body" class="text-slate-700">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIZ TAB -->
+            <div id="tab-quiz" class="hidden h-full flex flex-col justify-center items-center fade-in max-w-2xl mx-auto">
+                
+                <!-- Start Screen -->
+                <div id="quiz-start" class="text-center w-full">
+                    <div class="bg-white p-8 rounded-3xl shadow-xl w-full border border-slate-100">
+                        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2">准备好接受挑战了吗？</h2>
+                        <p class="text-slate-500 mb-8">我们将随机测试您对特殊角 Sin, Cos, Tan 数值的熟悉程度 (0° ~ 90°)。</p>
+                        <button onclick="startQuiz()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-lg shadow-lg shadow-indigo-200 transition-transform active:scale-95">
+                            开始测验
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question Screen -->
+                <div id="quiz-question" class="hidden w-full max-w-md">
+                    <div class="flex justify-between items-center mb-4 text-sm font-medium text-slate-500">
+                        <span>题目 <span id="q-current">1</span>/10</span>
+                        <span>得分: <span id="q-score" class="text-indigo-600">0</span></span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-200 rounded-full h-2 mb-8">
+                        <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-3xl shadow-xl text-center mb-6 relative overflow-hidden">
+                        <div id="feedback-overlay" class="absolute inset-0 z-10 hidden flex items-center justify-center bg-opacity-90 transition-all">
+                            <!-- Feedback injected here -->
+                        </div>
+
+                        <div class="text-5xl font-bold text-slate-800 mb-4 h-16 flex items-center justify-center" id="q-text">
+                            <!-- KaTeX Question Rendered Here -->
+                        </div>
+                        <div class="text-slate-400 text-sm">请选择正确的值</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4" id="options-container">
+                        <!-- Options generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Result Screen -->
+                <div id="quiz-result" class="hidden text-center w-full">
+                    <div class="bg-white p-8 rounded-3xl shadow-xl w-full">
+                        <div class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl" id="result-emoji">
+                            🎉
+                        </div>
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2">测验完成!</h2>
+                        <p class="text-slate-500 mb-6">您的最终得分</p>
+                        <div class="text-6xl font-bold text-indigo-600 mb-8" id="final-score">80</div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="switchTab('study')" class="py-3 px-6 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors">
+                                回去复习
+                            </button>
+                            <button onclick="startQuiz()" class="py-3 px-6 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-colors">
+                                再测一次
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 p-3 shrink-0 z-10">
+        <div class="max-w-4xl mx-auto flex items-center justify-center gap-3 text-slate-600">
+            <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png" alt="微积分福音" class="h-8 w-auto">
+            <span class="font-medium text-sm md:text-base">微积分福音&nbsp;&nbsp;卓永鸿老师制作</span>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA (TeX format) ---
+        const angles = [
+            { deg: 0, rad: "0", radVal: 0, sin: "0", cos: "1", tan: "0" },
+            { deg: 30, rad: "\\frac{\\pi}{6}", radVal: Math.PI/6, sin: "\\frac{1}{2}", cos: "\\frac{\\sqrt{3}}{2}", tan: "\\frac{1}{\\sqrt{3}}" },
+            { deg: 45, rad: "\\frac{\\pi}{4}", radVal: Math.PI/4, sin: "\\frac{\\sqrt{2}}{2}", cos: "\\frac{\\sqrt{2}}{2}", tan: "1" },
+            { deg: 60, rad: "\\frac{\\pi}{3}", radVal: Math.PI/3, sin: "\\frac{\\sqrt{3}}{2}", cos: "\\frac{1}{2}", tan: "\\sqrt{3}" },
+            { deg: 90, rad: "\\frac{\\pi}{2}", radVal: Math.PI/2, sin: "1", cos: "0", tan: "\\text{无定义}" },
+            { deg: 120, rad: "\\frac{2\\pi}{3}", radVal: 2*Math.PI/3, sin: "\\frac{\\sqrt{3}}{2}", cos: "-\\frac{1}{2}", tan: "-\\sqrt{3}" },
+            { deg: 135, rad: "\\frac{3\\pi}{4}", radVal: 3*Math.PI/4, sin: "\\frac{\\sqrt{2}}{2}", cos: "-\\frac{\\sqrt{2}}{2}", tan: "-1" },
+            { deg: 150, rad: "\\frac{5\\pi}{6}", radVal: 5*Math.PI/6, sin: "\\frac{1}{2}", cos: "-\\frac{\\sqrt{3}}{2}", tan: "-\\frac{1}{\\sqrt{3}}" },
+            { deg: 180, rad: "\\pi", radVal: Math.PI, sin: "0", cos: "-1", tan: "0" },
+            { deg: 270, rad: "\\frac{3\\pi}{2}", radVal: 3*Math.PI/2, sin: "-1", cos: "0", tan: "\\text{无定义}" },
+            { deg: 360, rad: "2\\pi", radVal: 2*Math.PI, sin: "0", cos: "1", tan: "0" }
+        ];
+
+        // Distinct values for generating distractors in quiz (TeX format)
+        const possibleValues = [
+            "0", "1", "-1", 
+            "\\frac{1}{2}", "-\\frac{1}{2}", 
+            "\\frac{\\sqrt{3}}{2}", "-\\frac{\\sqrt{3}}{2}", 
+            "\\frac{\\sqrt{2}}{2}", "-\\frac{\\sqrt{2}}{2}", 
+            "\\sqrt{3}", "-\\sqrt{3}", 
+            "\\frac{1}{\\sqrt{3}}", "-\\frac{1}{\\sqrt{3}}", 
+            "\\text{无定义}"
+        ];
+
+        let currentAngleIndex = 1; // Default to 30 degrees
+        let quizState = {
+            currentQ: 0,
+            score: 0,
+            totalQ: 10,
+            question: null
+        };
+
+        // --- HELPER: KaTeX Render String ---
+        function tex(str) {
+            try {
+                return katex.renderToString(str, {
+                    throwOnError: false,
+                    displayMode: false
+                });
+            } catch (e) {
+                console.error(e);
+                return str;
+            }
+        }
+        
+        function renderMathInElement(elementId, texString, displayMode = false) {
+            const el = document.getElementById(elementId);
+            if(el) {
+                katex.render(texString, el, {
+                    throwOnError: false,
+                    displayMode: displayMode
+                });
+            }
+        }
+
+        // --- APP LOGIC ---
+
+        function init() {
+            // Render static labels
+            renderMathInElement('label-sin', '\\sin \\theta');
+            renderMathInElement('label-cos', '\\cos \\theta');
+            renderMathInElement('label-tan', '\\tan \\theta');
+
+            renderTable();
+            drawUnitCircle();
+            updateInfoPanel();
+            
+            // Handle window resize for canvas
+            window.addEventListener('resize', drawUnitCircle);
+        }
+
+        // --- VISUALIZATION (CANVAS) ---
+
+        function drawUnitCircle() {
+            const canvas = document.getElementById('unitCircle');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width * 0.4;
+
+            // Clear
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Grid/Axes
+            ctx.beginPath();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            // X Axis
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            // Y Axis
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+
+            // Draw Circle
+            ctx.beginPath();
+            ctx.strokeStyle = '#6366f1'; // Indigo-500
+            ctx.lineWidth = 3;
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Draw Angle Points
+            angles.forEach((angle, index) => {
+                if(angle.deg === 360) return;
+
+                const cx = centerX + radius * Math.cos(-angle.radVal);
+                const cy = centerY + radius * Math.sin(-angle.radVal);
+
+                // Draw dots
+                ctx.beginPath();
+                if (index === currentAngleIndex || (angle.deg === 0 && angles[currentAngleIndex].deg === 360)) {
+                    ctx.fillStyle = '#dc2626'; // Red for selected
+                    ctx.arc(cx, cy, 6, 0, 2 * Math.PI);
+                    
+                    // Draw Line to center
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(cx, cy);
+                    ctx.strokeStyle = '#dc2626';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw Projection Lines
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#94a3b8';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx, centerY);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(centerX, cy);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                } else {
+                    ctx.fillStyle = '#cbd5e1'; // Slate-300 inactive
+                    ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+                }
+                ctx.fill();
+            });
+            
+            // Add Labels (1, -1)
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#64748b";
+            ctx.fillText("1", centerX + radius + 5, centerY + 15);
+            ctx.fillText("1", centerX - 10, centerY - radius - 5);
+        }
+
+        document.getElementById('unitCircle').addEventListener('click', function(event) {
+            const canvas = this;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width * 0.4;
+
+            let closestIndex = -1;
+            let minDist = 30;
+
+            angles.forEach((angle, index) => {
+                if(angle.deg === 360) return; 
+                const cx = centerX + radius * Math.cos(-angle.radVal);
+                const cy = centerY + radius * Math.sin(-angle.radVal);
+                
+                const dist = Math.sqrt((x - cx)**2 + (y - cy)**2);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestIndex = index;
+                }
+            });
+
+            if (closestIndex !== -1) {
+                currentAngleIndex = closestIndex;
+                drawUnitCircle();
+                updateInfoPanel();
+            }
+        });
+
+        function updateInfoPanel() {
+            const data = angles[currentAngleIndex];
+            
+            // Render Math Values
+            document.getElementById('display-deg').innerText = data.deg + "°";
+            renderMathInElement('display-rad', data.rad);
+            
+            renderMathInElement('val-sin', data.sin);
+            renderMathInElement('val-cos', data.cos);
+            renderMathInElement('val-tan', data.tan);
+
+            // Highlight row in table
+            const rows = document.querySelectorAll('#ref-table-body tr');
+            rows.forEach(r => r.classList.remove('bg-indigo-50'));
+            if(rows[currentAngleIndex]) {
+                rows[currentAngleIndex].classList.add('bg-indigo-50');
+                // Removed scrollIntoView since table is now full height
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('ref-table-body');
+            let html = '';
+            angles.forEach((a, idx) => {
+                html += `
+                <tr class="border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors" onclick="selectAngle(${idx})">
+                    <td class="py-3 font-bold text-slate-700">${a.deg}°</td>
+                    <td class="py-3 text-slate-500">${tex(a.rad)}</td>
+                    <td class="py-3 font-medium">${tex(a.sin)}</td>
+                    <td class="py-3 font-medium">${tex(a.cos)}</td>
+                    <td class="py-3 font-medium">${tex(a.tan)}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function selectAngle(idx) {
+            currentAngleIndex = idx;
+            drawUnitCircle();
+            updateInfoPanel();
+            if(window.innerWidth < 768) {
+                document.querySelector('main').scrollTop = 0;
+            }
+        }
+
+        // --- TAB SWITCHING ---
+
+        function switchTab(tab) {
+            const btnStudy = document.getElementById('btn-study');
+            const btnQuiz = document.getElementById('btn-quiz');
+            const divStudy = document.getElementById('tab-study');
+            const divQuiz = document.getElementById('tab-quiz');
+
+            if (tab === 'study') {
+                btnStudy.className = "px-4 py-1.5 rounded-md bg-white text-indigo-700 font-medium transition-all shadow-sm";
+                btnQuiz.className = "px-4 py-1.5 rounded-md text-indigo-100 hover:text-white font-medium transition-all";
+                divStudy.classList.remove('hidden');
+                divQuiz.classList.add('hidden');
+            } else {
+                btnQuiz.className = "px-4 py-1.5 rounded-md bg-white text-indigo-700 font-medium transition-all shadow-sm";
+                btnStudy.className = "px-4 py-1.5 rounded-md text-indigo-100 hover:text-white font-medium transition-all";
+                divQuiz.classList.remove('hidden');
+                divStudy.classList.add('hidden');
+            }
+        }
+
+        // --- QUIZ LOGIC ---
+
+        function startQuiz() {
+            quizState.currentQ = 0;
+            quizState.score = 0;
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('quiz-question').classList.remove('hidden');
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (quizState.currentQ >= quizState.totalQ) {
+                endQuiz();
+                return;
+            }
+
+            quizState.currentQ++;
+            document.getElementById('q-current').innerText = quizState.currentQ;
+            document.getElementById('q-score').innerText = quizState.score * 10;
+            document.getElementById('progress-bar').style.width = ((quizState.currentQ - 1) / quizState.totalQ * 100) + "%";
+
+            // Generate Question
+            // 0-90 degrees only constraint
+            const validAngles = angles.filter(a => a.deg <= 90);
+            const angleData = validAngles[Math.floor(Math.random() * validAngles.length)];
+            
+            const types = ['sin', 'cos', 'tan'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            const correctAnswer = angleData[type];
+            
+            // Construct TeX question string: \sin(30^\circ)
+            const questionTeX = `\\${type}(${angleData.deg}^\\circ)`;
+            
+            quizState.question = {
+                text: questionTeX,
+                answer: correctAnswer
+            };
+
+            renderMathInElement('q-text', questionTeX, true);
+
+            // Generate Options
+            let options = new Set();
+            options.add(correctAnswer);
+            
+            while(options.size < 4) {
+                const randomVal = possibleValues[Math.floor(Math.random() * possibleValues.length)];
+                if (randomVal !== correctAnswer) {
+                    options.add(randomVal);
+                }
+            }
+            
+            // Shuffle
+            const optionsArray = Array.from(options).sort(() => Math.random() - 0.5);
+
+            // Render Buttons
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            optionsArray.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "py-4 px-2 bg-slate-100 hover:bg-indigo-50 border-2 border-transparent hover:border-indigo-200 rounded-xl text-xl font-medium text-slate-700 transition-all active:scale-95 flex items-center justify-center";
+                // Render option with KaTeX
+                btn.innerHTML = tex(opt); 
+                btn.onclick = () => checkAnswer(btn, opt);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, selectedValue) {
+            const buttons = document.querySelectorAll('#options-container button');
+            buttons.forEach(b => b.disabled = true);
+
+            const isCorrect = selectedValue === quizState.question.answer;
+            const feedback = document.getElementById('feedback-overlay');
+            
+            if (isCorrect) {
+                quizState.score++;
+                btn.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-800');
+                feedback.className = "absolute inset-0 z-10 flex items-center justify-center bg-emerald-500 bg-opacity-90 rounded-3xl fade-in";
+                feedback.innerHTML = `<div class="text-white text-center"><div class="text-5xl mb-2">✅</div><div class="text-2xl font-bold">答对了!</div></div>`;
+            } else {
+                btn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-800');
+                
+                // Highlight correct one logic:
+                const correctHtml = tex(quizState.question.answer);
+                buttons.forEach(b => {
+                    if (b.innerHTML === correctHtml) {
+                         b.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-800');
+                    }
+                });
+
+                feedback.className = "absolute inset-0 z-10 flex items-center justify-center bg-rose-500 bg-opacity-90 rounded-3xl fade-in";
+                const correctTeX = quizState.question.answer;
+                feedback.innerHTML = `<div class="text-white text-center"><div class="text-5xl mb-2">❌</div><div class="text-2xl font-bold">正确答案是 ${tex(correctTeX)}</div></div>`;
+            }
+
+            feedback.classList.remove('hidden');
+
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+                nextQuestion();
+            }, 1500);
+        }
+
+        function endQuiz() {
+            document.getElementById('quiz-question').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            
+            const finalScore = quizState.score * 10;
+            document.getElementById('final-score').innerText = finalScore;
+            
+            const emojiDiv = document.getElementById('result-emoji');
+            if(finalScore === 100) {
+                emojiDiv.innerText = "🏆";
+                emojiDiv.className = "w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-yellow-100 animate-bounce";
+            } else if (finalScore >= 80) {
+                emojiDiv.innerText = "🎉";
+                emojiDiv.className = "w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-indigo-100";
+            } else if (finalScore >= 60) {
+                emojiDiv.innerText = "🙂";
+                emojiDiv.className = "w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-blue-100";
+            } else {
+                emojiDiv.innerText = "📚";
+                emojiDiv.className = "w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl bg-slate-200";
+            }
+        }
+
+        // Initialize
+        init();
+
+    </script>
+</body>
+</html>
