@@ -2,7 +2,7 @@
 // 注意：为了安全，生产环境通常建议放在 Cloudflare 的环境变量中，
 // 但为了您部署方便，直接填在这里也是可以的 (只要不公开此代码)。
 const TELEGRAM_BOT_TOKEN = "8364525636:AAEfU-elrDljmI-Ma-TBJrQKyeYKaYXYk_0"; // 例如 "8364525636:AAEfU-elrDljmI-Ma-TBJrQKyeYKaYXYk_0"
-const TELEGRAM_CHAT_ID = "7931324657";     // 例如 "987654321"
+const TELEGRAM_CHAT_ID = "7931324657";     // 例如 "9876543210"
 
 export default {
   async fetch(request, env, ctx) {
