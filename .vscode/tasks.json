@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Git Update NoteData",
+      "type": "shell",
+      "command": "git add . && git commit -m \"update\" && git push",
+      "options": {
+        "cwd": "/Users/zhuoyonghong/Documents/Git/NoteData"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
