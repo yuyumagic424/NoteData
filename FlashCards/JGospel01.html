@@ -1,357 +1,324 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  RotateCcw,
-  Shuffle,
-  CheckCircle,
-  BookOpen,
-} from 'lucide-react';
-
-// 原始数据资料 (已转换为简体中文)
-const initialFlashcards = [
-  {
-    id: 1,
-    question: "根据麦卡瑟的观点，当代福音派最严重的问题是什么？",
-    answer: "将基督的主权从福音信息中挪除，导致信仰核心受到侵蚀。"
-  },
-  {
-    id: 2,
-    question: "在新约中，用来描述作一个真正基督徒意义的希腊词 doulos，其确切含义是什么？",
-    answer: "指一个最卑贱的奴隶，其主人有权迫使他服役而不必付任何薪资。"
-  },
-  {
-    id: 3,
-    question: "为什么耶稣会质疑那些称呼祂“主啊！主啊！”的人？(路加福音 6:46)",
-    answer: "因为他们口头上尊敬祂，但在生活上却不遵从祂的话去行。"
-  },
-  {
-    id: 4,
-    question: "“一个人不能作两个主人的奴隶”为何比“一个人不能事奉两个主”更能表达原文的含义？",
-    answer: "因为它强调的是奴隶的“身份归属”，而不仅仅是提供服务的“工作行为”。"
-  },
-  {
-    id: 5,
-    question: "麦卡瑟认为，将基督徒身份理解为基督的奴隶，如何对抗现代的“成功福音”？",
-    answer: "它强调基督徒应完全降服主的旨意，而非追求个人的健康、财富或自我实现。"
-  },
-  {
-    id: 6,
-    question: "“只需和耶稣建立个人关系”这种说法有何潜在危险？",
-    answer: "可能导致人们认为基督可以仅仅是密友，而非必须降服的主，从而扭曲基督徒真义。"
-  },
-  {
-    id: 7,
-    question: "耶稣传讲作门徒的代价时，其态度与今日许多教会领袖有何不同？",
-    answer: "祂从不软化、掩饰或轻描淡写作门徒的代价，甚至吓跑仅是好奇或半调子的爱慕者。"
-  },
-  {
-    id: 8,
-    question: "在约翰福音 15:14-15 中，耶稣称门徒为朋友的条件是什么？",
-    answer: "条件是“你们若是遵行我所吩咐的”。"
-  },
-  {
-    id: 9,
-    question: "耶稣说“以后我不再称你们为仆人”，这是否意味着主仆关系的结束？",
-    answer: "否，这表示他们不仅是奴隶，更是能明白主人心意的朋友，但主仆地位并未改变。"
-  },
-  {
-    id: 10,
-    question: "当一个人承认耶稣是主 (Kyrios) 时，他同时也自动地承认自己是祂的什么？",
-    answer: "奴隶 (douloi)。"
-  },
-  {
-    id: 11,
-    question: "在使徒行传 2:36 和罗马书 10:9 等经文中，“主”这个词不仅指耶稣的神性，更强调了什么含义？",
-    answer: "它意味着“统治的上帝”(God who rules)，强调祂的权柄和主宰地位。"
-  },
-  {
-    id: 12,
-    question: "A.W. 陶恕 (A. W. Tozer) 曾说：“主不会拯救那些祂所不能______的人。”",
-    answer: "命令"
-  },
-  {
-    id: 13,
-    question: "为何“救恩是一个礼物，却要付上一切代价”这个看似矛盾的说法是成立的？",
-    answer: "救恩虽是神白白的恩赐，但领受它的信心必然包含离弃罪和降服于基督主权的代价。"
-  },
-  {
-    id: 14,
-    question: "耶稣在太 11:28-29 同时发出“我必使你们得安息”和“负我的轭”这两个邀请，揭示了信心的什么特质？",
-    answer: "这揭示了因信而得的安息并非无所事事，而是包含顺服和承担责任的安息。"
-  },
-  {
-    id: 15,
-    question: "根据麦卡瑟的观点，圣经中的“悔改”仅仅是改变对基督身份的看法吗？",
-    answer: "不是，它还包括承认自己的罪、从罪中转向神，并将涉及意志的改变。"
-  },
-  {
-    id: 16,
-    question: "真正的信心与行为之间的关系是什么？",
-    answer: "信心与行为并非互不相容；真正的信心必然会激发产生一定程度的顺服与善行。"
-  },
-  {
-    id: 17,
-    question: "如果一个人的得救经历中缺乏悔改、信心、成圣、顺服等任何一个要素，这说明了什么？",
-    answer: "这说明该经历可能不是神拯救的工作，因为神的工作不会有任何缺陷。"
-  }
-];
-
-export default function App() {
-  const [cards, setCards] = useState(initialFlashcards);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [learnedIds, setLearnedIds] = useState([]);
-  const [showLearned, setShowLearned] = useState(true);
-
-  // 当切换卡片时，总是先转回正面
-  useEffect(() => {
-    setIsFlipped(false);
-  }, [currentIndex]);
-
-  // 过滤后的卡片列表
-  const activeCards = showLearned
-    ? cards
-    : cards.filter(card => !learnedIds.includes(card.id));
-
-  const currentCard = activeCards[currentIndex];
-
-  // 防止索引越界
-  useEffect(() => {
-    if (currentIndex >= activeCards.length && activeCards.length > 0) {
-      setCurrentIndex(0);
-    }
-  }, [activeCards.length, currentIndex]);
-
-  const handleNext = (e) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev + 1) % activeCards.length);
-  };
-
-  const handlePrev = (e) => {
-    e.stopPropagation();
-    setCurrentIndex((prev) => (prev - 1 + activeCards.length) % activeCards.length);
-  };
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
-
-  const handleShuffle = (e) => {
-    e.stopPropagation();
-    const shuffled = [...cards].sort(() => Math.random() - 0.5);
-    setCards(shuffled);
-    setCurrentIndex(0);
-    setIsFlipped(false);
-  };
-
-  const handleReset = (e) => {
-    e.stopPropagation();
-    setCards(initialFlashcards.sort((a, b) => a.id - b.id));
-    setCurrentIndex(0);
-    setLearnedIds([]);
-    setIsFlipped(false);
-  };
-
-  const toggleLearned = (e) => {
-    e.stopPropagation();
-    if (!currentCard) return;
-
-    if (learnedIds.includes(currentCard.id)) {
-      setLearnedIds(prev => prev.filter(id => id !== currentCard.id));
-    } else {
-      setLearnedIds(prev => [...prev, currentCard.id]);
-    }
-  };
-
-  if (activeCards.length === 0) {
-    return (
-      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md">
-          <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">太棒了！</h2>
-          <p className="text-slate-600 mb-6">您已经将所有卡片标记为“已学会”。</p>
-          <button
-            onClick={() => setShowLearned(true)}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors w-full"
-          >
-            重新复习所有卡片
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-indigo-600 p-2 rounded-lg">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-lg font-bold text-slate-800">耶稣所传的福音 第一部 闪卡复习</h1>
-          </div>
-
-          <div className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            {currentIndex + 1} / {activeCards.length}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 max-w-md mx-auto w-full p-4 flex flex-col justify-center items-center">
-
-        {/* Card Container (Vertical 1:2 Aspect Ratio) */}
-        <div
-          className="w-full aspect-[1/2] relative perspective-1000 cursor-pointer group"
-          onClick={handleFlip}
-        >
-          <div
-            className={`w-full h-full relative preserve-3d transition-transform duration-500 shadow-xl rounded-2xl ${
-              isFlipped ? 'rotate-y-180' : ''
-            }`}
-          >
-            {/* Front (Question) */}
-            <div className="absolute inset-0 backface-hidden bg-white rounded-2xl p-8 flex flex-col justify-center items-center text-center border-2 border-slate-100">
-              <span className="absolute top-6 left-6 text-xs font-bold text-indigo-500 uppercase tracking-wider bg-indigo-50 px-2 py-1 rounded">
-                问题 Question
-              </span>
-
-              <div className="flex-1 flex items-center justify-center">
-                <h3 className="text-xl sm:text-2xl font-serif font-medium leading-relaxed text-slate-800">
-                  {currentCard.question}
-                </h3>
-              </div>
-
-              <p className="text-sm text-slate-400 mt-4 flex items-center animate-pulse">
-                点击翻看答案
-              </p>
-            </div>
-
-            {/* Back (Answer) */}
-            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-2xl p-8 flex flex-col justify-center items-center text-center text-white shadow-inner">
-              <span className="absolute top-6 left-6 text-xs font-bold text-white/80 uppercase tracking-wider bg-white/20 px-2 py-1 rounded">
-                答案 Answer
-              </span>
-
-              <div className="flex-1 flex items-center justify-center w-full overflow-y-auto custom-scrollbar">
-                <p className="text-lg sm:text-xl font-medium leading-relaxed">
-                  {currentCard.answer}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="w-full mt-8 flex flex-col items-center justify-between gap-4">
-
-          <div className="flex items-center space-x-4 w-full justify-center">
-            <button
-              onClick={handlePrev}
-              className="p-4 rounded-full bg-white text-slate-800 shadow-md hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-lg transition-all border border-slate-100"
-              disabled={activeCards.length <= 1}
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="p-4 rounded-full bg-indigo-600 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all ring-4 ring-indigo-100"
-              disabled={activeCards.length <= 1}
-            >
-              <ArrowRight className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="flex items-center space-x-2 w-full justify-center">
-            <button
-              onClick={handleShuffle}
-              className="p-3 rounded-full bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors border border-slate-200"
-              title="随机排序"
-            >
-              <Shuffle className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleReset}
-              className="p-3 rounded-full bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors border border-slate-200"
-              title="重置"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-            <button
-              onClick={toggleLearned}
-              className={`flex items-center space-x-2 px-4 py-3 rounded-full shadow-sm transition-all border ${
-                learnedIds.includes(currentCard?.id)
-                  ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-              }`}
-              title="标记为已学会"
-            >
-              <CheckCircle className={`w-5 h-5 ${learnedIds.includes(currentCard?.id) ? 'fill-emerald-700 text-emerald-100' : ''}`} />
-              <span className="text-sm font-medium">
-                {learnedIds.includes(currentCard?.id) ? '已学会' : '标记已学会'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="mt-8 flex items-center space-x-2 text-sm text-slate-500">
-          <label className="flex items-center space-x-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={!showLearned}
-              onChange={() => setShowLearned(!showLearned)}
-              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
-            />
-            <span>隐藏已学会的卡片 ({learnedIds.length})</span>
-          </label>
-        </div>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-4">
-        <div className="max-w-md mx-auto px-4 flex items-center justify-center space-x-2">
-          <img
-            src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
-            alt="微积分福音 Logo"
-            className="h-6 w-auto"
-          />
-          <span className="text-sm text-slate-600 font-medium">
-            微积分福音 卓永鸿老师制作
-          </span>
-        </div>
-      </footer>
-
-      {/* CSS Styles for 3D Flip */}
-      <style>{`
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>耶稣所传的福音 第一部 闪卡复习</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* 3D Flip Styles */
         .perspective-1000 {
-          perspective: 1000px;
+            perspective: 1000px;
         }
         .preserve-3d {
-          transform-style: preserve-3d;
+            transform-style: preserve-3d;
         }
         .backface-hidden {
-          backface-visibility: hidden;
+            backface-visibility: hidden;
         }
         .rotate-y-180 {
-          transform: rotateY(180deg);
+            transform: rotateY(180deg);
         }
-        /* Custom scrollbar for long answers */
+        /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
+            width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
         }
-      `}</style>
-    </div>
-  );
-}
+        
+        /* Transition utility */
+        .transition-transform {
+            transition-property: transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 500ms;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg">
+                    <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
+                </div>
+                <h1 class="text-lg font-bold text-slate-800">耶稣所传的福音 第一部 闪卡复习</h1>
+            </div>
+            
+            <div id="progress-text" class="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                1 / 17
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-container" class="flex-1 max-w-md mx-auto w-full p-4 flex flex-col justify-center items-center">
+        <!-- Content will be injected here by JavaScript -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4">
+        <div class="max-w-md mx-auto px-4 flex items-center justify-center space-x-2">
+            <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png" alt="微积分福音 Logo" class="h-6 w-auto">
+            <span class="text-sm text-slate-600 font-medium">
+                微积分福音 卓永鸿老师制作
+            </span>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data ---
+        const initialFlashcards = [
+            { id: 1, question: "根据麦卡瑟的观点，当代福音派最严重的问题是什么？", answer: "将基督的主权从福音信息中挪除，导致信仰核心受到侵蚀。" },
+            { id: 2, question: "在新约中，用来描述作一个真正基督徒意义的希腊词 doulos，其确切含义是什么？", answer: "指一个最卑贱的奴隶，其主人有权迫使他服役而不必付任何薪资。" },
+            { id: 3, question: "为什么耶稣会质疑那些称呼祂“主啊！主啊！”的人？(路加福音 6:46)", answer: "因为他们口头上尊敬祂，但在生活上却不遵从祂的话去行。" },
+            { id: 4, question: "“一个人不能作两个主人的奴隶”为何比“一个人不能事奉两个主”更能表达原文的含义？", answer: "因为它强调的是奴隶的“身份归属”，而不仅仅是提供服务的“工作行为”。" },
+            { id: 5, question: "麦卡瑟认为，将基督徒身份理解为基督的奴隶，如何对抗现代的“成功福音”？", answer: "它强调基督徒应完全降服主的旨意，而非追求个人的健康、财富或自我实现。" },
+            { id: 6, question: "“只需和耶稣建立个人关系”这种说法有何潜在危险？", answer: "可能导致人们认为基督可以仅仅是密友，而非必须降服的主，从而扭曲基督徒真义。" },
+            { id: 7, question: "耶稣传讲作门徒的代价时，其态度与今日许多教会领袖有何不同？", answer: "祂从不软化、掩饰或轻描淡写作门徒的代价，甚至吓跑仅是好奇或半调子的爱慕者。" },
+            { id: 8, question: "在约翰福音 15:14-15 中，耶稣称门徒为朋友的条件是什么？", answer: "条件是“你们若是遵行我所吩咐的”。" },
+            { id: 9, question: "耶稣说“以后我不再称你们为仆人”，这是否意味着主仆关系的结束？", answer: "否，这表示他们不仅是奴隶，更是能明白主人心意的朋友，但主仆地位并未改变。" },
+            { id: 10, question: "当一个人承认耶稣是主 (Kyrios) 时，他同时也自动地承认自己是祂的什么？", answer: "奴隶 (douloi)。" },
+            { id: 11, question: "在使徒行传 2:36 和罗马书 10:9 等经文中，“主”这个词不仅指耶稣的神性，更强调了什么含义？", answer: "它意味着“统治的上帝”(God who rules)，强调祂的权柄和主宰地位。" },
+            { id: 12, question: "A.W. 陶恕 (A. W. Tozer) 曾说：“主不会拯救那些祂所不能______的人。”", answer: "命令" },
+            { id: 13, question: "为何“救恩是一个礼物，却要付上一切代价”这个看似矛盾的说法是成立的？", answer: "救恩虽是神白白的恩赐，但领受它的信心必然包含离弃罪和降服于基督主权的代价。" },
+            { id: 14, question: "耶稣在太 11:28-29 同时发出“我必使你们得安息”和“负我的轭”这两个邀请，揭示了信心的什么特质？", answer: "这揭示了因信而得的安息并非无所事事，而是包含顺服和承担责任的安息。" },
+            { id: 15, question: "根据麦卡瑟的观点，圣经中的“悔改”仅仅是改变对基督身份的看法吗？", answer: "不是，它还包括承认自己的罪、从罪中转向神，并将涉及意志的改变。" },
+            { id: 16, question: "真正的信心与行为之间的关系是什么？", answer: "信心与行为并非互不相容；真正的信心必然会激发产生一定程度的顺服与善行。" },
+            { id: 17, question: "如果一个人的得救经历中缺乏悔改、信心、成圣、顺服等任何一个要素，这说明了什么？", answer: "这说明该经历可能不是神拯救的工作，因为神的工作不会有任何缺陷。" }
+        ];
+
+        // --- State ---
+        let cards = [...initialFlashcards];
+        let currentIndex = 0;
+        let isFlipped = false;
+        let learnedIds = [];
+        let showLearned = true;
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+        const progressText = document.getElementById('progress-text');
+
+        // --- Render Function ---
+        function render() {
+            // Filter cards
+            const activeCards = showLearned 
+                ? cards 
+                : cards.filter(card => !learnedIds.includes(card.id));
+
+            // Adjust index if out of bounds
+            if (currentIndex >= activeCards.length && activeCards.length > 0) {
+                currentIndex = 0;
+            }
+
+            // --- View: All Done ---
+            if (activeCards.length === 0) {
+                appContainer.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md w-full">
+                        <div class="flex justify-center mb-4">
+                            <i data-lucide="check-circle" class="w-16 h-16 text-emerald-500"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2">太棒了！</h2>
+                        <p class="text-slate-600 mb-6">您已经将所有卡片标记为“已学会”。</p>
+                        <button onclick="handleShowLearned(true)" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors w-full">
+                            重新复习所有卡片
+                        </button>
+                    </div>
+                `;
+                progressText.textContent = `0 / 0`;
+                lucide.createIcons();
+                return;
+            }
+
+            const currentCard = activeCards[currentIndex];
+            const isLearned = learnedIds.includes(currentCard.id);
+
+            // Update Progress
+            progressText.textContent = `${currentIndex + 1} / ${activeCards.length}`;
+
+            // --- View: Flashcard ---
+            appContainer.innerHTML = `
+                <!-- Card Container (Vertical 1:2 Aspect Ratio) -->
+                <div class="w-full aspect-[1/2] relative perspective-1000 cursor-pointer group" onclick="handleFlip()">
+                    <div id="card-inner" class="w-full h-full relative preserve-3d transition-transform shadow-xl rounded-2xl ${isFlipped ? 'rotate-y-180' : ''}">
+                        
+                        <!-- Front (Question) -->
+                        <div class="absolute inset-0 backface-hidden bg-white rounded-2xl p-8 flex flex-col justify-center items-center text-center border-2 border-slate-100">
+                            <span class="absolute top-6 left-6 text-xs font-bold text-indigo-500 uppercase tracking-wider bg-indigo-50 px-2 py-1 rounded">
+                                问题 Question
+                            </span>
+                            
+                            <div class="flex-1 flex items-center justify-center">
+                                <h3 class="text-xl sm:text-2xl font-serif font-medium leading-relaxed text-slate-800 select-none">
+                                    ${currentCard.question}
+                                </h3>
+                            </div>
+                            
+                            <p class="text-sm text-slate-400 mt-4 flex items-center animate-pulse">
+                                点击翻看答案
+                            </p>
+                        </div>
+
+                        <!-- Back (Answer) -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 bg-indigo-600 rounded-2xl p-8 flex flex-col justify-center items-center text-center text-white shadow-inner">
+                            <span class="absolute top-6 left-6 text-xs font-bold text-white/80 uppercase tracking-wider bg-white/20 px-2 py-1 rounded">
+                                答案 Answer
+                            </span>
+                            
+                            <div class="flex-1 flex items-center justify-center w-full overflow-y-auto custom-scrollbar">
+                                <p class="text-lg sm:text-xl font-medium leading-relaxed select-none">
+                                    ${currentCard.answer}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="w-full mt-8 flex flex-col items-center justify-between gap-4">
+                    
+                    <div class="flex items-center space-x-4 w-full justify-center">
+                        <button onclick="handlePrev(event)" 
+                            class="p-4 rounded-full bg-white text-slate-800 shadow-md hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-lg transition-all border border-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            ${activeCards.length <= 1 ? 'disabled' : ''}>
+                            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                        </button>
+                        <button onclick="handleNext(event)" 
+                            class="p-4 rounded-full bg-indigo-600 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all ring-4 ring-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            ${activeCards.length <= 1 ? 'disabled' : ''}>
+                            <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2 w-full justify-center">
+                        <button onclick="handleShuffle(event)" title="随机排序"
+                            class="p-3 rounded-full bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors border border-slate-200">
+                            <i data-lucide="shuffle" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="handleReset(event)" title="重置"
+                            class="p-3 rounded-full bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-indigo-600 transition-colors border border-slate-200">
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="handleToggleLearned(event, ${currentCard.id})" title="标记为已学会"
+                            class="flex items-center space-x-2 px-4 py-3 rounded-full shadow-sm transition-all border ${
+                                isLearned
+                                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                            }">
+                            <i data-lucide="check-circle" class="w-5 h-5 ${isLearned ? 'fill-emerald-700 text-emerald-100' : ''}"></i>
+                            <span class="text-sm font-medium">
+                                ${isLearned ? '已学会' : '标记已学会'}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="mt-8 flex items-center space-x-2 text-sm text-slate-500">
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                        <input type="checkbox" 
+                            ${!showLearned ? 'checked' : ''} 
+                            onchange="handleToggleFilter(this)"
+                            class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                        <span>隐藏已学会的卡片 (${learnedIds.length})</span>
+                    </label>
+                </div>
+            `;
+            
+            // Re-initialize icons
+            lucide.createIcons();
+        }
+
+        // --- Event Handlers ---
+
+        function handleFlip() {
+            isFlipped = !isFlipped;
+            const cardInner = document.getElementById('card-inner');
+            if (cardInner) {
+                if (isFlipped) {
+                    cardInner.classList.add('rotate-y-180');
+                } else {
+                    cardInner.classList.remove('rotate-y-180');
+                }
+            }
+        }
+
+        function handleNext(e) {
+            if(e) e.stopPropagation();
+            const activeCards = showLearned ? cards : cards.filter(c => !learnedIds.includes(c.id));
+            if (activeCards.length === 0) return;
+            
+            currentIndex = (currentIndex + 1) % activeCards.length;
+            isFlipped = false;
+            render();
+        }
+
+        function handlePrev(e) {
+            if(e) e.stopPropagation();
+            const activeCards = showLearned ? cards : cards.filter(c => !learnedIds.includes(c.id));
+            if (activeCards.length === 0) return;
+
+            currentIndex = (currentIndex - 1 + activeCards.length) % activeCards.length;
+            isFlipped = false;
+            render();
+        }
+
+        function handleShuffle(e) {
+            if(e) e.stopPropagation();
+            // Shuffle array
+            cards.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            isFlipped = false;
+            render();
+        }
+
+        function handleReset(e) {
+            if(e) e.stopPropagation();
+            // Reset order by ID
+            cards = [...initialFlashcards].sort((a, b) => a.id - b.id);
+            currentIndex = 0;
+            isFlipped = false;
+            learnedIds = [];
+            render();
+        }
+
+        function handleToggleLearned(e, id) {
+            if(e) e.stopPropagation();
+            if (learnedIds.includes(id)) {
+                learnedIds = learnedIds.filter(lId => lId !== id);
+            } else {
+                learnedIds.push(id);
+            }
+            render();
+        }
+
+        function handleToggleFilter(checkbox) {
+            showLearned = !checkbox.checked;
+            currentIndex = 0; // Reset index to avoid out of bounds
+            isFlipped = false;
+            render();
+        }
+        
+        function handleShowLearned(show) {
+            showLearned = show;
+            currentIndex = 0;
+            isFlipped = false;
+            render();
+        }
+
+        // --- Initialization ---
+        render();
+
+    </script>
+</body>
+</html>
