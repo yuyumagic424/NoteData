@@ -1,178 +1,544 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中央极限定理模拟（竖版）</title>
-
-    <!-- Tailwind -->
+    <title>Central Limit Theorem Visualizer</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- MathJax Configuration (MUST be before loading MathJax) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <!-- MathJax Library -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
         body {
-            background: #f3f4f6;
-            font-family: "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
         }
-        .card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        /* Custom Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 2px;
         }
     </style>
 </head>
+<body class="text-slate-800">
 
-<body class="px-4 py-6 flex justify-center">
+    <div class="max-w-6xl mx-auto p-4 md:p-6">
+        
+        <!-- Header -->
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Central Limit Theorem Visualizer</h1>
+            <p class="text-slate-500 mt-1">Regardless of the parent distribution, the distribution of sample means tends to a Normal distribution.</p>
+        </header>
 
-<div class="w-full max-w-[480px]">
+        <!-- Main Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- LEFT COLUMN: Controls & Population (4 cols) -->
+            <div class="lg:col-span-4 space-y-6">
+                
+                <!-- 1. Controls Panel -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Settings
+                    </h2>
 
-    <!-- HEADER -->
-    <header class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-800 text-center tracking-wide">
-            中央极限定理（CLT）模拟
-        </h1>
-    </header>
+                    <!-- Distribution Selection -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Population Distribution</label>
+                        <select id="distSelect" onchange="updateUI()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow">
+                            <option value="uniform">Uniform (Continuous)</option>
+                            <option value="binomial">Binomial (n=10, Discrete)</option>
+                            <option value="poisson">Poisson (Discrete)</option>
+                            <option value="exponential">Exponential (Continuous)</option>
+                            <option value="bimodal">Bimodal (Mixed)</option>
+                        </select>
+                    </div>
 
-    <!-- CONTROL PANEL -->
-    <section class="card mb-6">
+                    <!-- Dynamic Parameters (Hidden by default) -->
+                    <div id="paramContainer" class="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200 hidden">
+                        <!-- Binomial P -->
+                        <div id="binomialParams" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Probability ($p$)</label>
+                            <div class="flex gap-2">
+                                <button onclick="setParam('p', 0.1)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.1</button>
+                                <button onclick="setParam('p', 0.3)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.3</button>
+                                <button onclick="setParam('p', 0.5)" class="param-btn px-2 py-1 text-xs bg-blue-600 text-white border border-blue-600 rounded">0.5</button>
+                                <button onclick="setParam('p', 0.7)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.7</button>
+                                <button onclick="setParam('p', 0.9)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.9</button>
+                            </div>
+                        </div>
+                        <!-- Poisson Lambda -->
+                        <div id="poissonParams" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Lambda ($\lambda$)</label>
+                            <div class="flex gap-2">
+                                <button onclick="setParam('l', 1)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">1</button>
+                                <button onclick="setParam('l', 3)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">3</button>
+                                <button onclick="setParam('l', 5)" class="param-btn px-2 py-1 text-xs bg-blue-600 text-white border border-blue-600 rounded">5</button>
+                                <button onclick="setParam('l', 10)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">10</button>
+                            </div>
+                        </div>
+                    </div>
 
-        <h2 class="text-lg font-semibold text-slate-700 mb-3">参数设定</h2>
+                    <!-- Sample Size (n) -->
+                    <div class="mb-4">
+                        <div class="flex justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide">Sample Size ($n$)</label>
+                            <span id="nVal" class="text-sm font-bold text-blue-600 bg-blue-50 px-2 rounded">30</span>
+                        </div>
+                        <input type="range" id="sampleSize" min="2" max="100" value="30" step="1" oninput="updateLabels()" class="w-full">
+                    </div>
 
-        <!-- Distribution selection -->
-        <label class="block mb-3 text-sm text-slate-600">选择母体分布：</label>
-        <select id="dist" class="w-full px-3 py-2 border rounded-lg text-sm mb-4">
-            <option value="uniform">均匀分布 U(0,1)</option>
-            <option value="exponential">指数分布 Exp(1)</option>
-            <option value="custom">自定义（示例）</option>
-        </select>
+                    <!-- Simulations (k) -->
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide">Simulations</label>
+                            <span id="kVal" class="text-sm font-bold text-blue-600 bg-blue-50 px-2 rounded">1000</span>
+                        </div>
+                        <!-- Maps to array: 10, 20, 30, 50, 70, 100, 150, 300, 500, 1000, 5000 -->
+                        <input type="range" id="simCount" min="0" max="10" value="9" step="1" oninput="updateLabels()" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-400 px-1 mt-1">
+                            <span>10</span>
+                            <span>5000</span>
+                        </div>
+                    </div>
 
-        <!-- Sample size -->
-        <label class="block mb-3 text-sm text-slate-600">样本大小 n：</label>
-        <input id="n" type="number" class="w-full px-3 py-2 border rounded-lg text-sm mb-4" value="5" min="1" max="200">
+                    <!-- Run Button -->
+                    <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold py-2.5 px-4 rounded-lg transition-all shadow-md flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                        Start Simulation
+                    </button>
+                </div>
 
-        <!-- Number of samples -->
-        <label class="block mb-3 text-sm text-slate-600">重复抽样次数：</label>
-        <input id="numSamples" type="number" class="w-full px-3 py-2 border rounded-lg text-sm mb-4" value="200" min="10" max="2000">
+                <!-- 2. Population Visualizer (New) -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-sm font-bold text-slate-800 mb-2">Population Shape ($X$)</h2>
+                    <p class="text-xs text-slate-500 mb-3">Theoretical distribution of a single observation.</p>
+                    <div class="relative w-full h-32">
+                        <canvas id="popChart"></canvas>
+                    </div>
+                </div>
 
-        <button id="runBtn"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition">
-            开始模拟
-        </button>
-    </section>
+            </div>
 
-    <!-- POPULATION HIST -->
-    <section class="card mb-6">
-        <h2 class="text-lg font-semibold text-slate-700 mb-3">母体分布</h2>
-        <canvas id="popChart" height="220"></canvas>
-    </section>
+            <!-- RIGHT COLUMN: Results & Explanation (8 cols) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Main Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-slate-800">Sampling Distribution of Mean ($\bar{X}$)</h2>
+                        <div class="text-xs flex gap-4">
+                            <div class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-500 opacity-60 rounded-sm"></span> Simulation</div>
+                            <div class="flex items-center gap-1"><span class="w-3 h-1 bg-red-600"></span> Normal Approx</div>
+                        </div>
+                    </div>
+                    <div class="relative w-full h-[350px]">
+                        <canvas id="cltChart"></canvas>
+                    </div>
+                </div>
 
-    <!-- SAMPLING DISTRIBUTION -->
-    <section class="card mb-6">
-        <h2 class="text-lg font-semibold text-slate-700 mb-3">样本均值分布</h2>
-        <canvas id="sampleChart" height="220"></canvas>
+                <!-- Explanation -->
+                <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3 border-b border-indigo-200 pb-2">Central Limit Theorem (CLT) Explained</h3>
+                    
+                    <div class="text-sm text-slate-700 space-y-3 leading-relaxed">
+                        <p>
+                            Even if the <strong>Population</strong> (shown on the bottom left) is not Normal (e.g., it is skewed like the Exponential or discrete like Poisson), the distribution of the <strong>Sample Means</strong> ($\bar{X}$) becomes approximately Normal as the sample size $n$ gets larger.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                            <div class="bg-white p-3 rounded border border-indigo-100 shadow-sm">
+                                <strong class="text-indigo-600 block mb-1">Conditions</strong>
+                                <ul class="list-disc pl-4 space-y-1 text-slate-600">
+                                    <li>Independent samples</li>
+                                    <li>Large enough $n$ (Rule of thumb: $n \ge 30$)</li>
+                                </ul>
+                            </div>
+                            <div class="bg-white p-3 rounded border border-indigo-100 shadow-sm flex items-center justify-center">
+                                <div class="text-center">
+                                    <p class="text-xs text-slate-500 mb-1">Approximation</p>
+                                    <span class="text-lg font-mono font-bold text-slate-800">
+                                        $$ \bar{X} \approx N\left(\mu, \frac{\sigma^2}{n}\right) $$
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-            根据中央极限定理：当样本大小 n 足够大时，<br>
-            <span class="font-semibold text-blue-700">样本均值的分布会近似正态分布</span>，即使母体分布并非正态。
-        </p>
-    </section>
+                        <p class="italic text-slate-500 text-xs">
+                            * Notice that as you increase $n$, the spread (variance) of the blue histogram gets narrower. This is because the variance is divided by $n$.
+                        </p>
+                    </div>
+                </div>
 
-    <!-- FOOTER（胶囊 pill footer） -->
-    <footer class="py-6">
-        <div class="flex justify-center">
-            <div class="bg-white border border-slate-200 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition">
-                <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
-                     class="w-6 h-6 rounded-full" alt="logo">
-                <span class="text-xs text-slate-600 tracking-wide">
-                    微积分福音 · 卓永鸿老师制作
-                </span>
             </div>
         </div>
-    </footer>
+    </div>
 
-</div>
+    <!-- Application Logic -->
+    <script>
+        // --- State Management ---
+        const state = {
+            dist: 'uniform',
+            n: 30,
+            simIndex: 9, // Points to 1000
+            params: {
+                p: 0.5,     // Binomial (Default)
+                lambda: 5   // Poisson
+            }
+        };
 
+        const simOptions = [10, 20, 30, 50, 70, 100, 150, 300, 500, 1000, 5000];
 
-<!-- ------------------------------------------- -->
-<!-- JS：CLT Simulation / Chart Drawing           -->
-<!-- ------------------------------------------- -->
+        // --- Chart Instances ---
+        let mainChart = null;
+        let popChart = null;
 
-<script>
-    function generateData(dist, n) {
-        if (dist === "uniform") {
-            return Array.from({length: n}, () => Math.random());
+        // --- Setup & Event Listeners ---
+        function updateUI() {
+            // Update State from Inputs
+            state.dist = document.getElementById('distSelect').value;
+            
+            // Show/Hide Parameters
+            const container = document.getElementById('paramContainer');
+            const binDiv = document.getElementById('binomialParams');
+            const poiDiv = document.getElementById('poissonParams');
+            
+            container.classList.add('hidden');
+            binDiv.classList.add('hidden');
+            poiDiv.classList.add('hidden');
+
+            if (state.dist === 'binomial') {
+                container.classList.remove('hidden');
+                binDiv.classList.remove('hidden');
+            } else if (state.dist === 'poisson') {
+                container.classList.remove('hidden');
+                poiDiv.classList.remove('hidden');
+            }
+
+            // Redraw Population Chart immediately when type changes
+            drawPopulationChart();
         }
-        if (dist === "exponential") {
-            return Array.from({length: n}, () => -Math.log(Math.random()));
+
+        function setParam(key, val) {
+            if(key === 'p') state.params.p = val;
+            if(key === 'l') state.params.lambda = val;
+            
+            // Update Button Styles
+            const btns = document.querySelectorAll('.param-btn');
+            btns.forEach(btn => {
+                const btnText = btn.innerText;
+                let isMatch = false;
+
+                // Loose comparison to handle string/number differences
+                if (key === 'p' && btnText == val) isMatch = true;
+                if (key === 'l' && btnText == val) isMatch = true;
+                
+                // Only modify buttons belonging to the active group
+                const isBinomialBtn = btnText.includes('.') || ['0.1', '0.3', '0.5', '0.7', '0.9'].includes(btnText);
+                const isPoissonBtn = !btnText.includes('.');
+
+                if ((key === 'p' && isBinomialBtn) || (key === 'l' && isPoissonBtn)) {
+                     if(isMatch) {
+                        btn.className = "param-btn px-2 py-1 text-xs bg-blue-600 text-white border border-blue-600 rounded transition";
+                    } else {
+                        btn.className = "param-btn px-2 py-1 text-xs bg-white text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition";
+                    }
+                }
+            });
+
+            drawPopulationChart();
         }
-        return Array.from({length: n}, () => Math.random() * Math.random());
-    }
 
-    let popChart, sampleChart;
+        function updateLabels() {
+            // Update N label
+            state.n = parseInt(document.getElementById('sampleSize').value);
+            document.getElementById('nVal').innerText = state.n;
 
-    function drawHistogram(ctx, data, bins = 30, color = "rgba(37,99,235,0.7)") {
-        const min = Math.min(...data);
-        const max = Math.max(...data);
-        const binWidth = (max - min) / bins;
-        const hist = new Array(bins).fill(0);
+            // Update K label using the array map
+            const idx = parseInt(document.getElementById('simCount').value);
+            state.simIndex = idx;
+            document.getElementById('kVal').innerText = simOptions[idx];
+        }
 
-        data.forEach(v => {
-            let idx = Math.floor((v - min) / binWidth);
-            if (idx === bins) idx--;
-            hist[idx]++;
-        });
-
-        const labels = hist.map((_, i) => (min + i * binWidth).toFixed(2));
-
-        if (ctx._chartInstance) ctx._chartInstance.destroy();
-
-        ctx._chartInstance = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels,
-                datasets: [{
-                    label: "",
-                    data: hist,
-                    backgroundColor: color,
-                    borderWidth: 0
-                }]
+        // --- Random Number Generators ---
+        const RNG = {
+            uniform: () => Math.random(),
+            binomial: (n=10, p=0.5) => {
+                let s = 0;
+                for(let i=0; i<n; i++) if(Math.random() < p) s++;
+                return s; 
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { display: false } },
-                    y: { ticks: { display: false } }
+            poisson: (lambda=5) => {
+                let L = Math.exp(-lambda);
+                let k = 0, p = 1;
+                do { k++; p *= Math.random(); } while (p > L);
+                return k - 1;
+            },
+            exponential: (rate=1) => -Math.log(Math.random()) / rate,
+            bimodal: () => {
+                // Mixture: 50% N(2, 0.5), 50% N(8, 0.5)
+                return (Math.random() < 0.5) ? RNG.normal(2, 0.5) : RNG.normal(8, 0.5);
+            },
+            normal: (mu=0, sigma=1) => {
+                let u=0, v=0;
+                while(u===0) u=Math.random(); 
+                while(v===0) v=Math.random();
+                return mu + sigma * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            }
+        };
+
+        // --- Population Chart Logic ---
+        function drawPopulationChart() {
+            const ctx = document.getElementById('popChart').getContext('2d');
+            let labels = [];
+            let data = [];
+            let type = 'bar';
+            let borderColor = '#64748b'; // Slate 500
+            let bgColor = '#94a3b8'; // Slate 400
+
+            // Generate Theoretical Data for Pop Chart
+            if (state.dist === 'uniform') {
+                labels = ['0', '0.2', '0.4', '0.6', '0.8', '1.0'];
+                data = [1, 1, 1, 1, 1, 1]; // Flat PDF
+                type = 'line';
+            } else if (state.dist === 'binomial') {
+                // Fixed N=10 for population visualization
+                const n = 10; 
+                const p = state.params.p;
+                for(let k=0; k<=n; k++) {
+                    labels.push(k);
+                    // nCk * p^k * (1-p)^(n-k)
+                    let nCk = 1;
+                    for(let i=1; i<=k; i++) nCk = nCk * (n+1-i) / i;
+                    data.push(nCk * Math.pow(p, k) * Math.pow(1-p, n-k));
+                }
+            } else if (state.dist === 'poisson') {
+                const lam = state.params.lambda;
+                for(let k=0; k<=15; k++) {
+                    labels.push(k);
+                    // (lam^k * e^-lam) / k!
+                    let fact = 1;
+                    for(let i=1; i<=k; i++) fact *= i;
+                    data.push((Math.pow(lam, k) * Math.exp(-lam)) / fact);
+                }
+            } else if (state.dist === 'exponential') {
+                type = 'line';
+                for(let x=0; x<=5; x+=0.2) {
+                    labels.push(x.toFixed(1));
+                    data.push(Math.exp(-x)); // Lambda fixed at 1 for visual
+                }
+            } else if (state.dist === 'bimodal') {
+                type = 'line';
+                for(let x=0; x<=10; x+=0.2) {
+                    labels.push(x.toFixed(1));
+                    // PDF of 0.5*N(2,0.5) + 0.5*N(8,0.5)
+                    let y1 = (1/(0.5*Math.sqrt(2*Math.PI))) * Math.exp(-0.5 * ((x-2)/0.5)**2);
+                    let y2 = (1/(0.5*Math.sqrt(2*Math.PI))) * Math.exp(-0.5 * ((x-8)/0.5)**2);
+                    data.push(0.5*y1 + 0.5*y2);
                 }
             }
-        });
-    }
 
-    document.getElementById("runBtn").addEventListener("click", () => {
-        const dist = document.getElementById("dist").value;
-        const n = Number(document.getElementById("n").value);
-        const numSamples = Number(document.getElementById("numSamples").value);
-
-        // 生成母体
-        const population = generateData(dist, 5000);
-        drawHistogram(document.getElementById("popChart"), population, 30, "rgba(59,130,246,0.7)");
-
-        // 生成样本均值
-        const means = [];
-        for (let i = 0; i < numSamples; i++) {
-            const sample = generateData(dist, n);
-            const avg = sample.reduce((a,b)=>a+b) / n;
-            means.push(avg);
+            if(popChart) popChart.destroy();
+            popChart = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: borderColor,
+                        backgroundColor: bgColor,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.2,
+                        fill: type === 'line' // Fill area for continuous
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        x: { display: true, grid: { display: false }, ticks: { font: { size: 9 } } },
+                        y: { display: false, beginAtZero: true }
+                    },
+                    animation: { duration: 0 } // No animation for instant toggle
+                }
+            });
         }
 
-        drawHistogram(document.getElementById("sampleChart"), means, 30, "rgba(16,185,129,0.7)");
-    });
+        // --- Main Simulation Logic ---
+        function runSimulation() {
+            // Re-read inputs just in case
+            updateLabels();
+            const n = state.n;
+            const k = simOptions[state.simIndex];
+            
+            // 1. Generate Samples
+            const means = [];
+            let grandSum = 0;
 
-</script>
+            for(let i=0; i<k; i++) {
+                let sampleSum = 0;
+                for(let j=0; j<n; j++) {
+                    let val = 0;
+                    switch(state.dist) {
+                        case 'uniform': val = RNG.uniform(); break;
+                        case 'binomial': val = RNG.binomial(10, state.params.p); break; // N=10 fixed for "Population"
+                        case 'poisson': val = RNG.poisson(state.params.lambda); break;
+                        case 'exponential': val = RNG.exponential(1); break;
+                        case 'bimodal': val = RNG.bimodal(); break;
+                    }
+                    sampleSum += val;
+                }
+                const mean = sampleSum / n;
+                means.push(mean);
+                grandSum += mean;
+            }
 
+            // 2. Statistics
+            const meanOfMeans = grandSum / k;
+            const variance = means.reduce((acc, val) => acc + (val - meanOfMeans)**2, 0) / k;
+            const stdDev = Math.sqrt(variance);
+
+            // 3. Binning for Histogram
+            // Smart binning based on distribution spread
+            const min = Math.min(...means);
+            const max = Math.max(...means);
+            // Ensure non-zero range
+            const range = (max - min) || 1; 
+            const binCount = 40;
+            const binWidth = range / binCount;
+
+            const bins = new Array(binCount).fill(0);
+            const labels = [];
+            
+            // Create labels (midpoints)
+            for(let i=0; i<binCount; i++) labels.push((min + i*binWidth + binWidth/2).toFixed(2));
+
+            // Fill
+            means.forEach(m => {
+                let idx = Math.floor((m - min) / binWidth);
+                if (idx >= binCount) idx = binCount - 1;
+                bins[idx]++;
+            });
+
+            // 4. Normal Curve Overlay
+            const normalData = labels.map(label => {
+                const x = parseFloat(label);
+                const exponent = -0.5 * Math.pow((x - meanOfMeans) / stdDev, 2);
+                const pdf = (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+                return pdf * k * binWidth; // Scale to match frequency counts
+            });
+
+            updateMainChart(labels, bins, normalData);
+        }
+
+        function updateMainChart(labels, barData, lineData) {
+            const ctx = document.getElementById('cltChart').getContext('2d');
+            if(mainChart) mainChart.destroy();
+
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Normal Approx',
+                            data: lineData,
+                            type: 'line',
+                            borderColor: '#dc2626', // Red-600
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            order: 1
+                        },
+                        {
+                            label: 'Simulated Frequency',
+                            data: barData,
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue-500
+                            borderColor: '#2563eb',
+                            borderWidth: 1,
+                            barPercentage: 1.0,
+                            categoryPercentage: 1.0,
+                            order: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { 
+                            callbacks: {
+                                title: (items) => `Mean ≈ ${items[0].label}`,
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            ticks: { maxTicksLimit: 8, font: {size: 10} }, 
+                            grid: { display: false } 
+                        },
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        }
+                    },
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // Init
+        // Ensure MathJax renders after load
+        window.addEventListener('load', () => {
+            updateUI(); 
+            runSimulation();
+        });
+
+    </script>
 </body>
 </html>
