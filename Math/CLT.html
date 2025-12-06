@@ -226,7 +226,26 @@ function setParam(key, val) {
     if (key === "p") state.params.p = val;
     if (key === "l") state.params.lambda = val;
 
+    // ★ 新增：同步按钮外观
+    updateActiveButtons(key, val);
+
     drawPopulationChart();
+}
+
+// ★ 新增函数：根据当前选择高亮相应按钮
+function updateActiveButtons(key, val) {
+    const containerId = key === "p" ? "binomialParams" : "poissonParams";
+    const buttons = document.querySelectorAll(`#${containerId} .param-btn`);
+
+    buttons.forEach(btn => {
+        if (btn.textContent == String(val)) {
+            btn.classList.add("bg-blue-600", "text-white");
+            btn.classList.remove("bg-white");
+        } else {
+            btn.classList.remove("bg-blue-600", "text-white");
+            btn.classList.add("bg-white");
+        }
+    });
 }
 
 function updateLabels() {
