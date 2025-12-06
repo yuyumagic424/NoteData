@@ -31,97 +31,68 @@
             overflow-x: auto;
             overflow-y: hidden;
         }
-        /* Custom scrollbar for math overflow */
-        .math-display::-webkit-scrollbar {
-            height: 4px;
-        }
+        .math-display::-webkit-scrollbar { height: 4px; }
         .math-display::-webkit-scrollbar-thumb {
             background-color: #cbd5e1;
             border-radius: 4px;
         }
-        .card-flip {
-            perspective: 1000px;
-        }
+
+        .card-flip { perspective: 1000px; }
         .card-inner {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             position: relative;
             transition: transform 0.6s;
             transform-style: preserve-3d;
         }
-        .card-flip.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card-flip.flipped .card-inner { transform: rotateY(180deg); }
+
         .card-front, .card-back {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden; /* Safari */
+            width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
         }
-        .card-back {
-            transform: rotateY(180deg);
-        }
-        
-        /* Animation for fade in */
+        .card-back { transform: rotateY(180deg); }
+
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // --- Data ---
         const formulas = [
-            { id: 1, func: "\\sin(x)", deriv: "\\cos(x)", label: "正弦 (Sine)", style: "bg-blue-50 border-blue-100" },
-            { id: 2, func: "\\cos(x)", deriv: "-\\sin(x)", label: "余弦 (Cosine)", style: "bg-blue-50 border-blue-100" },
-            { id: 3, func: "\\tan(x)", deriv: "\\sec^2(x)", label: "正切 (Tangent)", style: "bg-emerald-50 border-emerald-100" },
-            { id: 4, func: "\\cot(x)", deriv: "-\\csc^2(x)", label: "余切 (Cotangent)", style: "bg-emerald-50 border-emerald-100" },
-            { id: 5, func: "\\sec(x)", deriv: "\\sec(x)\\tan(x)", label: "正割 (Secant)", style: "bg-purple-50 border-purple-100" },
-            { id: 6, func: "\\csc(x)", deriv: "-\\csc(x)\\cot(x)", label: "余割 (Cosecant)", style: "bg-purple-50 border-purple-100" }
+            { id: 1, func: "\\sin(x)", deriv: "\\cos(x)", style: "bg-blue-50 border-blue-100" },
+            { id: 2, func: "\\cos(x)", deriv: "-\\sin(x)", style: "bg-blue-50 border-blue-100" },
+            { id: 3, func: "\\tan(x)", deriv: "\\sec^2(x)", style: "bg-emerald-50 border-emerald-100" },
+            { id: 4, func: "\\cot(x)", deriv: "-\\csc^2(x)", style: "bg-emerald-50 border-emerald-100" },
+            { id: 5, func: "\\sec(x)", deriv: "\\sec(x)\\tan(x)", style: "bg-purple-50 border-purple-100" },
+            { id: 6, func: "\\csc(x)", deriv: "-\\csc(x)\\cot(x)", style: "bg-purple-50 border-purple-100" }
         ];
 
-        // --- Helper Components ---
-
-        // KaTeX Renderer Component
-        const Latex = ({ children, displayMode = false, className = "" }) => {
+        const Latex = ({ children, className = "" }) => {
             const containerRef = useRef(null);
-
             useEffect(() => {
-                if (containerRef.current) {
-                    try {
-                        katex.render(children, containerRef.current, {
-                            displayMode: displayMode,
-                            throwOnError: false
-                        });
-                    } catch (e) {
-                        console.error("KaTeX render error:", e);
-                    }
-                }
-            }, [children, displayMode]);
-
+                katex.render(children, containerRef.current, {
+                    throwOnError: false
+                });
+            }, [children]);
             return <span ref={containerRef} className={className} />;
         };
 
-        // Icon Wrapper
         const Icon = ({ name, size = 20, className }) => {
-            useEffect(() => {
-                lucide.createIcons();
-            }, [name]);
+            useEffect(() => { lucide.createIcons(); }, []);
             return <i data-lucide={name} width={size} height={size} className={className}></i>;
         };
 
-        // --- Main App Component ---
         const App = () => {
-            const [activeTab, setActiveTab] = useState('list'); // 'list', 'flashcard', 'quiz'
+            const [activeTab, setActiveTab] = useState('list');
 
             return (
                 <div className="min-h-screen bg-gray-100 flex flex-col items-center py-8 px-4 font-sans">
@@ -133,43 +104,55 @@
                     </header>
 
                     <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden min-h-[600px] flex flex-col">
-                        {/* Navigation Tabs */}
+
+                        {/* --- Tabs (改名：公式 / 闪卡 / 测验) --- */}
                         <div className="flex border-b border-gray-200">
                             <button 
                                 onClick={() => setActiveTab('list')}
-                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${activeTab === 'list' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${
+                                    activeTab === 'list'
+                                        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
                             >
-                                <Icon name="list" size={18} /> 公式表
+                                <Icon name="list" size={18} /> 公式
                             </button>
+
                             <button 
                                 onClick={() => setActiveTab('flashcard')}
-                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${activeTab === 'flashcard' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${
+                                    activeTab === 'flashcard'
+                                        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
                             >
-                                <Icon name="copy" size={18} /> 背诵卡
+                                <Icon name="copy" size={18} /> 闪卡
                             </button>
+
                             <button 
                                 onClick={() => setActiveTab('quiz')}
-                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${activeTab === 'quiz' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex-1 py-4 text-sm font-medium flex justify-center items-center gap-2 transition-colors ${
+                                    activeTab === 'quiz'
+                                        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                }`}
                             >
                                 <Icon name="graduation-cap" size={18} /> 测验
                             </button>
                         </div>
 
-                        {/* Content Area with Flex Column to push footer down */}
                         <div className="flex-1 p-6 bg-gray-50 flex flex-col">
-                            {/* Main View Content */}
                             <div className="flex-1 w-full">
                                 {activeTab === 'list' && <ListView />}
                                 {activeTab === 'flashcard' && <FlashcardView />}
                                 {activeTab === 'quiz' && <QuizView />}
                             </div>
 
-                            {/* Standardized Pill Footer inside the card */}
-                            <div className="mt-8 flex justify中心">
-                                <div className="bg白 border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
+                            {/* --- footer 保留原样 --- */}
+                            <div className="mt-8 flex justify-center">
+                                <div className="bg-white border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
                                     <img 
-                                        src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png" 
-                                        alt="Logo" 
+                                        src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
                                         className="w-6 h-6 object-contain rounded-full"
                                     />
                                     <span className="text-xs text-gray-500 font-medium tracking-wide">
@@ -177,23 +160,24 @@
                                     </span>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- Sub-Views ---
-
-        // 1. List View
+        /* ------------------ List View ------------------ */
         const ListView = () => {
             return (
                 <div className="space-y-4 animate-fade-in-up">
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">基本公式总览</h2>
+                    {/* 改成「基本公式」 */}
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">基本公式</h2>
+
                     <div className="space-y-3">
-                        {formulas.map((item) => (
-                            <div key={item.id} className={`${item.style} p-4 rounded-lg shadow-sm border flex items-center justify-center transition-transform hover:scale-[1.01]`}>
-                                <div className="flex items-center justify-center gap-3 text-lg math-display">
+                        {formulas.map(item => (
+                            <div key={item.id} className={`${item.style} p-4 rounded-lg shadow-sm border`}>
+                                <div className="flex items-center justify-center gap-3 text-base md:text-lg math-display">
                                     <div className="text-gray-600">
                                         <Latex>{`\\frac{\\mathrm{d}}{\\mathrm{d}x} ${item.func} =`}</Latex>
                                     </div>
@@ -208,83 +192,78 @@
             );
         };
 
-        // 2. Flashcard View
+        /* ------------------ Flashcard View ------------------ */
         const FlashcardView = () => {
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [isFlipped, setIsFlipped] = useState(false);
+            const [idx, setIdx] = useState(0);
+            const [flip, setFlip] = useState(false);
 
-            const nextCard = () => {
-                if (isFlipped) {
-                    setIsFlipped(false);
-                    setTimeout(() => {
-                        setCurrentIndex((prev) => (prev + 1) % formulas.length);
-                    }, 300);
-                } else {
-                    setCurrentIndex((prev) => (prev + 1) % formulas.length);
-                }
+            const next = () => {
+                if (flip) {
+                    setFlip(false);
+                    setTimeout(() => setIdx((idx + 1) % formulas.length), 300);
+                } else setIdx((idx + 1) % formulas.length);
+            };
+            const prev = () => {
+                if (flip) {
+                    setFlip(false);
+                    setTimeout(() => setIdx((idx - 1 + formulas.length) % formulas.length), 300);
+                } else setIdx((idx - 1 + formulas.length) % formulas.length);
             };
 
-            const prevCard = () => {
-                if (isFlipped) {
-                    setIsFlipped(false);
-                    setTimeout(() => {
-                        setCurrentIndex((prev) => (prev - 1 + formulas.length) % formulas.length);
-                    }, 300);
-                } else {
-                    setCurrentIndex((prev) => (prev - 1 + formulas.length) % formulas.length);
-                }
-            };
-
-            const currentCard = formulas[currentIndex];
+            const item = formulas[idx];
 
             return (
                 <div className="flex flex-col items-center justify-center h-full animate-fade-in-up min-h-[350px]">
                     <div className="text-center mb-4">
                         <span className="bg-white border border-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold shadow-sm">
-                            Card {currentIndex + 1} / {formulas.length}
+                            Card {idx + 1} / {formulas.length}
                         </span>
                     </div>
 
                     <div 
-                        className={`card-flip relative w-full max-w-[480px] aspect-[3/4] cursor-pointer mx-auto ${isFlipped ? 'flipped' : ''}`}
-                        onClick={() => setIsFlipped(!isFlipped)}
+                        className={`card-flip relative w-full max-w-[480px] aspect-[3/4] cursor-pointer mx-auto ${flip ? 'flipped' : ''}`}
+                        onClick={() => setFlip(!flip)}
                     >
                         <div className="card-inner">
+                            
                             {/* Front */}
-                            <div className="card-front bg-white rounded-xl shadow-md border-2 border-blue-50 flex flex-col items-center justify-center p-6 hover:shadow-lg transition-shadow">
+                            <div className="card-front bg-white rounded-xl shadow-md border-2 border-blue-50 flex flex-col items-center justify-center p-6">
                                 <h3 className="text-gray-400 mb-6 text-xs uppercase tracking-widest font-semibold">求导函数</h3>
-                                <div className="text-3xl text-gray-800 mb-2">
-                                    <Latex>{`f(x) = ${currentCard.func}`}</Latex>
+
+                                {/* 手机变小，桌面不变 */}
+                                <div className="text-2xl md:text-3xl text-gray-800 mb-2">
+                                    <Latex>{`f(x) = ${item.func}`}</Latex>
                                 </div>
-                                <div className="text-xl text-gray-500 mt-4 opacity-50">
+
+                                <div className="text-lg md:text-xl text-gray-500 mt-4 opacity-50">
                                     <Latex>{`f'(x) = ?`}</Latex>
                                 </div>
+
                                 <div className="absolute bottom-4 text-xs text-blue-400 animate-pulse">
                                     点击翻面查看答案
                                 </div>
                             </div>
 
                             {/* Back */}
-                            <div className="card-back bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md flex flex-col items-center justify-center p-6 text白 border-2 border-blue-600">
+                            <div className="card-back bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md flex flex-col items-center justify-center p-6 text-white border-2 border-blue-600">
                                 <h3 className="text-blue-100 mb-6 text-xs uppercase tracking-widest font-semibold">答案</h3>
-                                <div className="text-3xl font-bold text-center drop-shadow-md">
-                                    <Latex className="text-white">{currentCard.deriv}</Latex>
+
+                                <div className="text-2xl md:text-3xl font-bold text-center drop-shadow-md">
+                                    <Latex>{item.deriv}</Latex>
                                 </div>
                             </div>
+
                         </div>
                     </div>
 
                     <div className="flex gap-4 mt-8">
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); prevCard(); }}
-                            className="p-3 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 transition z-10"
-                        >
+                        <button onClick={e => { e.stopPropagation(); prev(); }}
+                            className="p-3 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-50">
                             <Icon name="arrow-left" size={20} />
                         </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); nextCard(); }}
-                            className="p-3 rounded-full bg白 shadow-sm border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 transition z-10"
-                        >
+
+                        <button onClick={e => { e.stopPropagation(); next(); }}
+                            className="p-3 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-50">
                             <Icon name="arrow-right" size={20} />
                         </button>
                     </div>
@@ -292,105 +271,90 @@
             );
         };
 
-        // 3. Quiz View
+        /* ------------------ Quiz View ------------------ */
         const QuizView = () => {
-            const [question, setQuestion] = useState(null);
-            const [options, setOptions] = useState([]);
-            const [selectedOption, setSelectedOption] = useState(null);
-            const [isCorrect, setIsCorrect] = useState(null);
+            const [q, setQ] = useState(null);
+            const [opts, setOpts] = useState([]);
+            const [sel, setSel] = useState(null);
+            const [ok, setOk] = useState(null);
             const [score, setScore] = useState({ correct: 0, total: 0 });
 
-            const generateQuestion = () => {
-                const randomIdx = Math.floor(Math.random() * formulas.length);
-                const target = formulas[randomIdx];
+            const gen = () => {
+                const idx = Math.floor(Math.random() * formulas.length);
+                const f = formulas[idx];
+                const correct = f.deriv;
 
-                const correctAnswer = target.deriv;
-                let distractors = formulas
-                    .filter(f => f.id !== target.id)
-                    .map(f => f.deriv);
-                
-                distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
-                
-                const allOptions = [correctAnswer, ...distractors].sort(() => 0.5 - Math.random());
+                let wrong = formulas.filter(x => x.id !== f.id).map(x => x.deriv);
+                wrong = wrong.sort(() => Math.random() - 0.5).slice(0, 3);
 
-                setQuestion(target);
-                setOptions(allOptions);
-                setSelectedOption(null);
-                setIsCorrect(null);
+                const all = [correct, ...wrong].sort(() => Math.random() - 0.5);
+
+                setQ(f);
+                setOpts(all);
+                setSel(null);
+                setOk(null);
             };
 
-            useEffect(() => {
-                generateQuestion();
-            }, []);
+            useEffect(() => { gen(); }, []);
 
-            const handleOptionClick = (option) => {
-                if (selectedOption) return; 
-                
-                setSelectedOption(option);
-                const correct = option === question.deriv;
-                setIsCorrect(correct);
-                
-                setScore(prev => ({
-                    correct: prev.correct + (correct ? 1 : 0),
-                    total: prev.total + 1
-                }));
+            const pick = (o) => {
+                if (sel) return;
+                setSel(o);
+                const correct = o === q.deriv;
+                setOk(correct);
+                setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
             };
 
-            const nextQuestion = () => {
-                generateQuestion();
-            };
-
-            if (!question) return <div className="p-8 text-center text-gray-500">加载中...</div>;
+            if (!q) return <div className="p-8 text-center text-gray-500">加载中...</div>;
 
             return (
                 <div className="flex flex-col h-full animate-fade-in-up">
+
+                    {/* 移除「随堂测验」 */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-800">随堂测验</h2>
-                        <div className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1 rounded-full text-sm font-medium shadow-sm">
+                        <h2 className="hidden"></h2>
+                        <div className="bg-blue-50 text-blue-700 border border-blue-100 px-4 py-1 rounded-full text-sm shadow-sm">
                             得分: {score.correct} / {score.total}
                         </div>
                     </div>
 
                     <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 mb-6 text-center">
-                        <div className="text-2xl text-gray-800">
-                            <Latex>{`\\frac{\\mathrm{d}}{\\mathrm{d}x} [ ${question.func} ] =`}</Latex>
+                        <div className="text-xl md:text-2xl text-gray-800">
+                            <Latex>{`\\frac{\\mathrm{d}}{\\mathrm{d}x} [ ${q.func} ] =`}</Latex>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 mb-6">
-                        {options.map((option, idx) => {
-                            let btnClass = "p-4 text-center rounded-xl border-2 transition-all duration-200 text-lg shadow-sm ";
+                        {opts.map((o, idx) => {
+                            let klass = "p-4 text-center rounded-xl border-2 transition-all duration-200 text-base md:text-lg shadow-sm ";
                             
-                            if (selectedOption === null) {
-                                btnClass += "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50 cursor-pointer hover:shadow-md text-gray-700";
-                            } else if (option === question.deriv) {
-                                btnClass += "border-green-500 bg-green-50 text-green-700 font-bold";
-                            } else if (option === selectedOption && !isCorrect) {
-                                btnClass += "border-red-500 bg-red-50 text-red-700";
+                            if (!sel) {
+                                klass += "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50 text-gray-700";
+                            } else if (o === q.deriv) {
+                                klass += "border-green-500 bg-green-50 text-green-700 font-bold";
+                            } else if (o === sel) {
+                                klass += "border-red-500 bg-red-50 text-red-700";
                             } else {
-                                btnClass += "border-gray-100 bg-gray-50 text-gray-400 opacity-60";
+                                klass += "border-gray-100 bg-gray-50 text-gray-400 opacity-60";
                             }
 
                             return (
-                                <div 
-                                    key={idx} 
-                                    className={btnClass}
-                                    onClick={() => handleOptionClick(option)}
-                                >
-                                    <Latex>{option}</Latex>
+                                <div key={idx} className={klass} onClick={() => pick(o)}>
+                                    <Latex>{o}</Latex>
                                 </div>
                             );
                         })}
                     </div>
 
-                    {selectedOption && (
+                    {sel && (
                         <div className="mt-auto text-center animate-fade-in-up">
-                            <div className={`text-lg font-bold mb-4 ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
-                                {isCorrect ? "答对了！ Great Job!" : "答错了，再接再厉！"}
+                            <div className={`text-lg font-bold mb-4 ${ok ? 'text-green-600' : 'text-red-500'}`}>
+                                {ok ? "答对了！ Great Job!" : "答错了，再接再厉！"}
                             </div>
+
                             <button 
-                                onClick={nextQuestion}
-                                className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mx-auto font-medium"
+                                onClick={gen}
+                                className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg flex items-center justify-center gap-2 mx-auto"
                             >
                                 下一题 <Icon name="arrow-right" size={18} />
                             </button>
@@ -400,8 +364,7 @@
             );
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
