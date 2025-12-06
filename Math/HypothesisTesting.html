@@ -42,19 +42,6 @@
 <body>
     <div id="root"></div>
 
-    <!-- 固定在整頁底部的 footer（純 HTML 版，不進 React） -->
-    <footer class="py-6">
-        <div class="flex justify-center">
-            <div class="bg-white border border-slate-200 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition">
-                <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
-                     class="w-6 h-6 rounded-full">
-                <span class="text-xs text-slate-600 tracking-wide">
-                    微积分福音 · 卓永鸿老师制作
-                </span>
-            </div>
-        </div>
-    </footer>
-
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
@@ -126,38 +113,23 @@
             return sum;
         };
 
-        // --- LATEX COMPONENT（只改這裡的 useEffect，其餘完全照原始版） ---
+        // --- LATEX COMPONENT ---
+
         const Latex = ({ children, displayMode = false, className = "" }) => {
             const containerRef = useRef(null);
             
             useEffect(() => {
-                const render = () => {
-                    if (window.katex && containerRef.current) {
-                        try {
-                            window.katex.render(children, containerRef.current, {
-                                throwOnError: false,
-                                displayMode: displayMode,
-                                output: 'html',
-                            });
-                        } catch (e) {
-                            console.error("KaTeX error:", e);
-                            containerRef.current.textContent = children;
-                        }
+                if (window.katex && containerRef.current) {
+                    try {
+                        window.katex.render(children, containerRef.current, {
+                            throwOnError: false,
+                            displayMode: displayMode,
+                            output: 'html',
+                        });
+                    } catch (e) {
+                        console.error("KaTeX error:", e);
+                        containerRef.current.textContent = children;
                     }
-                };
-
-                // 桌面端：通常這裡就能直接 render
-                if (window.katex) {
-                    render();
-                } else {
-                    // 行動端或載入較慢時：輪詢直到 KaTeX 載入完成
-                    const interval = setInterval(() => {
-                        if (window.katex) {
-                            render();
-                            clearInterval(interval);
-                        }
-                    }, 80);
-                    return () => clearInterval(interval);
                 }
             }, [children, displayMode]);
 
@@ -276,7 +248,7 @@
                             <AlertCircle size={16} /> Exam Tips
                         </h3>
                         <ul className="list-disc list-inside text-xs text-amber-900 space-y-1.5 font-medium leading-relaxed">
-                            <li><strong>Two-tailed:</strong> Split <Latex>\alpha</Latex> (e.g., <Latex>5\% \rightarrow 2.5\%</LateX> each tail).</li>
+                            <li><strong>Two-tailed:</strong> Split <Latex>\alpha</Latex> (e.g., <Latex>5\% \rightarrow 2.5\%</Latex> each tail).</li>
                             <li><strong>Continuity Correction:</strong> Normal Approx requires <Latex>\pm 0.5</Latex> adjustment.</li>
                             <li><strong>Wording:</strong> Always relate conclusion back to the scenario.</li>
                         </ul>
@@ -361,6 +333,7 @@
                                 {distType === 'binomial' ? (
                                     <>
                                         <div>
+                                            {/* Removed 'uppercase' class to prevent LaTeX font issues */}
                                             <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
                                                 <Latex>n</Latex> (Trials)
                                             </label>
@@ -375,6 +348,7 @@
                                     </>
                                 ) : (
                                     <div className="col-span-2">
+                                        {/* Removed 'uppercase' class here to fix the Lambda uppercase issue */}
                                         <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
                                             <Latex>\lambda</Latex> (Rate)
                                         </label>
