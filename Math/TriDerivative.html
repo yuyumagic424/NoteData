@@ -177,14 +177,20 @@
                     <div className="space-y-3">
                         {formulas.map(item => (
                             <div key={item.id} className={`${item.style} p-4 rounded-lg shadow-sm border`}>
-                                <div className="flex items-center justify-center gap-3 text-base md:text-lg math-display">
-                                    <div className="text-gray-600">
-                                        <Latex>{`\\frac{\\mathrm{d}}{\\mathrm{d}x} ${item.func} =`}</Latex>
-                                    </div>
-                                    <div className="text-blue-700 font-bold">
-                                        <Latex>{item.deriv}</Latex>
-                                    </div>
-                                </div>
+                                <div className="text-center text-base md:text-lg math-display space-y-1">
+    
+    {/* 第一行：d/dx f(x) = */}
+    <div className="text-gray-600">
+        <Latex>{`\\frac{\\mathrm{d}}{\\mathrm{d}x} ${item.func} =`}</Latex>
+    </div>
+
+    {/* 第二行：导函数（蓝色） */}
+    <div className="text-blue-700 font-bold">
+        <Latex>{item.deriv}</Latex>
+    </div>
+
+</div>
+
                             </div>
                         ))}
                     </div>
