@@ -68,12 +68,12 @@
         const { useState, useEffect, useRef } = React;
 
         const formulas = [
-            { id: 1, func: "\\sin(x)", deriv: "\\cos(x)", style: "bg-blue-50 border-blue-100" },
-            { id: 2, func: "\\cos(x)", deriv: "-\\sin(x)", style: "bg-blue-50 border-blue-100" },
-            { id: 3, func: "\\tan(x)", deriv: "\\sec^2(x)", style: "bg-emerald-50 border-emerald-100" },
-            { id: 4, func: "\\cot(x)", deriv: "-\\csc^2(x)", style: "bg-emerald-50 border-emerald-100" },
-            { id: 5, func: "\\sec(x)", deriv: "\\sec(x)\\tan(x)", style: "bg-purple-50 border-purple-100" },
-            { id: 6, func: "\\csc(x)", deriv: "-\\csc(x)\\cot(x)", style: "bg-purple-50 border-purple-100" }
+            { id: 1, func: "\\sin x", deriv: "\\cos x", style: "bg-blue-50 border-blue-100" },
+            { id: 2, func: "\\cos x", deriv: "-\\sin x", style: "bg-blue-50 border-blue-100" },
+            { id: 3, func: "\\tan x", deriv: "\\sec^2 x", style: "bg-emerald-50 border-emerald-100" },
+            { id: 4, func: "\\cot x", deriv: "-\\csc^2 x", style: "bg-emerald-50 border-emerald-100" },
+            { id: 5, func: "\\sec x", deriv: "\\sec x\\tan x", style: "bg-purple-50 border-purple-100" },
+            { id: 6, func: "\\csc x", deriv: "-\\csc x\\cot x", style: "bg-purple-50 border-purple-100" }
         ];
 
         const Latex = ({ children, className = "" }) => {
