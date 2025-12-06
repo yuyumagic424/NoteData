@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中央极限定理模拟（竖版）</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            background: #f3f4f6;
+            font-family: "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+        }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+
+<body class="px-4 py-6 flex justify-center">
+
+<div class="w-full max-w-[480px]">
+
+    <!-- HEADER -->
+    <header class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800 text-center tracking-wide">
+            中央极限定理（CLT）模拟
+        </h1>
+    </header>
+
+    <!-- CONTROL PANEL -->
+    <section class="card mb-6">
+
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">参数设定</h2>
+
+        <!-- Distribution selection -->
+        <label class="block mb-3 text-sm text-slate-600">选择母体分布：</label>
+        <select id="dist" class="w-full px-3 py-2 border rounded-lg text-sm mb-4">
+            <option value="uniform">均匀分布 U(0,1)</option>
+            <option value="exponential">指数分布 Exp(1)</option>
+            <option value="custom">自定义（示例）</option>
+        </select>
+
+        <!-- Sample size -->
+        <label class="block mb-3 text-sm text-slate-600">样本大小 n：</label>
+        <input id="n" type="number" class="w-full px-3 py-2 border rounded-lg text-sm mb-4" value="5" min="1" max="200">
+
+        <!-- Number of samples -->
+        <label class="block mb-3 text-sm text-slate-600">重复抽样次数：</label>
+        <input id="numSamples" type="number" class="w-full px-3 py-2 border rounded-lg text-sm mb-4" value="200" min="10" max="2000">
+
+        <button id="runBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold transition">
+            开始模拟
+        </button>
+    </section>
+
+    <!-- POPULATION HIST -->
+    <section class="card mb-6">
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">母体分布</h2>
+        <canvas id="popChart" height="220"></canvas>
+    </section>
+
+    <!-- SAMPLING DISTRIBUTION -->
+    <section class="card mb-6">
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">样本均值分布</h2>
+        <canvas id="sampleChart" height="220"></canvas>
+
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+            根据中央极限定理：当样本大小 n 足够大时，<br>
+            <span class="font-semibold text-blue-700">样本均值的分布会近似正态分布</span>，即使母体分布并非正态。
+        </p>
+    </section>
+
+    <!-- FOOTER（胶囊 pill footer） -->
+    <footer class="py-6">
+        <div class="flex justify-center">
+            <div class="bg-white border border-slate-200 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition">
+                <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
+                     class="w-6 h-6 rounded-full" alt="logo">
+                <span class="text-xs text-slate-600 tracking-wide">
+                    微积分福音 · 卓永鸿老师制作
+                </span>
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+
+<!-- ------------------------------------------- -->
+<!-- JS：CLT Simulation / Chart Drawing           -->
+<!-- ------------------------------------------- -->
+
+<script>
+    function generateData(dist, n) {
+        if (dist === "uniform") {
+            return Array.from({length: n}, () => Math.random());
+        }
+        if (dist === "exponential") {
+            return Array.from({length: n}, () => -Math.log(Math.random()));
+        }
+        return Array.from({length: n}, () => Math.random() * Math.random());
+    }
+
+    let popChart, sampleChart;
+
+    function drawHistogram(ctx, data, bins = 30, color = "rgba(37,99,235,0.7)") {
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const binWidth = (max - min) / bins;
+        const hist = new Array(bins).fill(0);
+
+        data.forEach(v => {
+            let idx = Math.floor((v - min) / binWidth);
+            if (idx === bins) idx--;
+            hist[idx]++;
+        });
+
+        const labels = hist.map((_, i) => (min + i * binWidth).toFixed(2));
+
+        if (ctx._chartInstance) ctx._chartInstance.destroy();
+
+        ctx._chartInstance = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "",
+                    data: hist,
+                    backgroundColor: color,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { display: false } },
+                    y: { ticks: { display: false } }
+                }
+            }
+        });
+    }
+
+    document.getElementById("runBtn").addEventListener("click", () => {
+        const dist = document.getElementById("dist").value;
+        const n = Number(document.getElementById("n").value);
+        const numSamples = Number(document.getElementById("numSamples").value);
+
+        // 生成母体
+        const population = generateData(dist, 5000);
+        drawHistogram(document.getElementById("popChart"), population, 30, "rgba(59,130,246,0.7)");
+
+        // 生成样本均值
+        const means = [];
+        for (let i = 0; i < numSamples; i++) {
+            const sample = generateData(dist, n);
+            const avg = sample.reduce((a,b)=>a+b) / n;
+            means.push(avg);
+        }
+
+        drawHistogram(document.getElementById("sampleChart"), means, 30, "rgba(16,185,129,0.7)");
+    });
+
+</script>
+
+</body>
+</html>
