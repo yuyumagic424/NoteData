@@ -1,270 +1,680 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hypothesis Testing</title>
-
-    <!-- Tailwind -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edexcel IAL S2 Hypothesis Testing</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- React -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- KaTeX -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
-
+    
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
     <style>
-        body { background: #f8fafc; }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        body {
+            background-color: #f1f5f9; /* slate-100 */
+        }
     </style>
 </head>
+<body>
+    <div id="root"></div>
 
-<body class="flex flex-col items-center px-4 py-6">
+    <!-- 固定在整頁底部的 footer（純 HTML 版，不進 React） -->
+    <footer class="py-6">
+        <div class="flex justify-center">
+            <div class="bg-white border border-slate-200 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition">
+                <img src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
+                     class="w-6 h-6 rounded-full">
+                <span class="text-xs text-slate-600 tracking-wide">
+                    微积分福音 · 卓永鸿老师制作
+                </span>
+            </div>
+        </div>
+    </footer>
 
-<div id="root" class="w-full max-w-[480px]"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-<!-- ===================== 修正版 React App ===================== -->
-<script type="text/babel">
+        // --- ICONS (Inline SVG to avoid external dependency issues) ---
+        
+        const BookOpen = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        );
 
-/* ---------------------------------------------------------
-   FIX: MOBILE KaTeX LOADING ISSUE
---------------------------------------------------------- */
-window.katexLoaded = false;
+        const Calculator = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+        );
 
-document.addEventListener("DOMContentLoaded", () => {
-    if (window.katex) window.katexLoaded = true;
-});
+        const CheckCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        );
 
-const katexScript = document.querySelector('script[src*="katex"]');
-if (katexScript) {
-    katexScript.addEventListener("load", () => {
-        window.katexLoaded = true;
-    });
-}
+        const AlertCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+        );
 
-/* ---------------------------------------------------------
-   LATEX COMPONENT — FIXED VERSION
---------------------------------------------------------- */
-const Latex = ({ children, displayMode = false, className = "" }) => {
-    const containerRef = React.useRef(null);
+        const ChevronRight = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>
+        );
 
-    const renderLatex = () => {
-        if (window.katexLoaded && containerRef.current) {
-            try {
-                window.katex.render(children, containerRef.current, {
-                    throwOnError: false,
-                    displayMode,
-                });
-            } catch (err) {
-                console.error("KaTeX error:", err);
-                containerRef.current.textContent = children;
+        const GraduationCap = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        );
+
+        // --- MATH UTILITIES ---
+
+        const factorial = (n) => {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        };
+
+        const nCr = (n, r) => {
+            if (r < 0 || r > n) return 0;
+            return factorial(n) / (factorial(r) * factorial(n - r));
+        };
+
+        // Binomial PDF: P(X = k)
+        const binomPDF = (n, p, k) => {
+            return nCr(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+        };
+
+        // Binomial CDF: P(X <= k)
+        const binomCDF = (n, p, k) => {
+            let sum = 0;
+            for (let i = 0; i <= k; i++) {
+                sum += binomPDF(n, p, i);
             }
-        }
-    };
+            return sum;
+        };
 
-    React.useEffect(() => {
-        if (window.katexLoaded) {
-            renderLatex();
-        } else {
-            const timer = setInterval(() => {
-                if (window.katexLoaded) {
-                    renderLatex();
-                    clearInterval(timer);
+        // Poisson PDF: P(X = k)
+        const poissonPDF = (lam, k) => {
+            return (Math.pow(lam, k) * Math.exp(-lam)) / factorial(k);
+        };
+
+        // Poisson CDF: P(X <= k)
+        const poissonCDF = (lam, k) => {
+            let sum = 0;
+            for (let i = 0; i <= k; i++) {
+                sum += poissonPDF(lam, i);
+            }
+            return sum;
+        };
+
+        // --- LATEX COMPONENT（只改這裡的 useEffect，其餘完全照原始版） ---
+        const Latex = ({ children, displayMode = false, className = "" }) => {
+            const containerRef = useRef(null);
+            
+            useEffect(() => {
+                const render = () => {
+                    if (window.katex && containerRef.current) {
+                        try {
+                            window.katex.render(children, containerRef.current, {
+                                throwOnError: false,
+                                displayMode: displayMode,
+                                output: 'html',
+                            });
+                        } catch (e) {
+                            console.error("KaTeX error:", e);
+                            containerRef.current.textContent = children;
+                        }
+                    }
+                };
+
+                // 桌面端：通常這裡就能直接 render
+                if (window.katex) {
+                    render();
+                } else {
+                    // 行動端或載入較慢時：輪詢直到 KaTeX 載入完成
+                    const interval = setInterval(() => {
+                        if (window.katex) {
+                            render();
+                            clearInterval(interval);
+                        }
+                    }, 80);
+                    return () => clearInterval(interval);
                 }
-            }, 80);
+            }, [children, displayMode]);
+
+            return <span ref={containerRef} className={className}></span>;
+        };
+
+        // --- SUB-COMPONENTS ---
+
+        const DefinitionCard = ({ title, desc }) => (
+            <div className="bg-slate-50 p-2.5 rounded border border-slate-100">
+                <h4 className="font-bold text-slate-700 text-xs mb-0.5">{title}</h4>
+                <p className="text-[11px] text-slate-500 leading-tight">{desc}</p>
+            </div>
+        );
+
+        const StepItem = ({ num, text, subtext }) => (
+            <div className="flex gap-3 relative pb-4 last:pb-0">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-white border-2 border-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm z-10 shadow-sm">{num}</span>
+                <div className="pt-1">
+                    <p className="text-slate-800 font-bold text-sm">{text}</p>
+                    <div className="text-slate-500 text-xs mt-0.5 leading-relaxed">{subtext}</div>
+                </div>
+            </div>
+        );
+
+        // --- TAB COMPONENTS ---
+
+        const NotesTab = () => {
+            return (
+                <div className="space-y-4 animate-[fadeIn_0.5s_ease-out]">
+                    
+                    {/* Definitions Section */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2 border-b pb-2 border-slate-100">
+                            <BookOpen className="text-indigo-600" size={18} /> Definitions
+                        </h2>
+                        
+                        <div className="space-y-3">
+                            <div className="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
+                                <h3 className="font-bold text-indigo-700 text-sm mb-1">Null Hypothesis (<Latex>H_0</Latex>)</h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    The default position (no change/no effect).<br/>
+                                    <span className="font-mono text-indigo-600"><Latex>e.g., H_0: p = 0.3</Latex></span>
+                                </p>
+                            </div>
+                            
+                            <div className="bg-rose-50/50 p-3 rounded-lg border border-rose-100">
+                                <h3 className="font-bold text-rose-700 text-sm mb-1">Alternative Hypothesis (<Latex>H_1</Latex>)</h3>
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                    Accepted if <Latex>H_0</Latex> is rejected.<br/>
+                                    <span className="font-mono text-rose-600 block mt-1"><Latex>H_1: p &lt; 0.3</Latex> (One-tailed)</span>
+                                    <span className="font-mono text-rose-600 block"><Latex>H_1: p \neq 0.3</Latex> (Two-tailed)</span>
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2">
+                                <DefinitionCard 
+                                    title={<span>Significance Level (<Latex>\alpha</Latex>)</span>}
+                                    desc={<span>The probability of rejecting <Latex>H_0</Latex> when it is actually true.</span>}
+                                />
+                                <DefinitionCard 
+                                    title="Critical Region (CR)" 
+                                    desc={<span>Values of the test statistic that lead to rejecting <Latex>H_0</Latex>.</span>}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4-Step Method Section */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <h2 className="text-lg font-bold text-slate-800 mb-3 border-b pb-2 border-slate-100">Standard 4-Step Method</h2>
+                        <div className="space-y-0 relative">
+                            {/* Vertical Line */}
+                            <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-100"></div>
+
+                            <StepItem 
+                                num="1" 
+                                text="State Hypotheses" 
+                                subtext={
+                                    <span className="font-mono text-xs text-slate-500">
+                                        <Latex>H_0: p = \dots</Latex> <br/>
+                                        <Latex>H_1: p &lt; \dots</Latex> or <Latex>p &gt; \dots</Latex> or <Latex>p \neq \dots</Latex>
+                                    </span>
+                                } 
+                            />
+                            <StepItem 
+                                num="2" 
+                                text="Calculate Statistic" 
+                                subtext={<span>Calculate <Latex>p</Latex>-value OR find if observation is in Critical Region.</span>}
+                            />
+                            <StepItem 
+                                num="3" 
+                                text="Determine Significance" 
+                                subtext={
+                                    <div className="mt-1 space-y-1">
+                                        <div className="flex items-center gap-1 text-[10px] text-rose-700 font-medium bg-rose-50 px-2 py-1 rounded border border-rose-100">
+                                            Significant → Reject <Latex className="ml-1">H_0</Latex> (in CR)
+                                        </div>
+                                        <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                                            Not significant → Do not reject <Latex className="ml-1">H_0</Latex>
+                                        </div>
+                                    </div>
+                                }
+                            />
+                            <StepItem 
+                                num="4" 
+                                text="Conclusion" 
+                                subtext="State clearly in the context of the question." 
+                            />
+                        </div>
+                    </div>
+
+                    {/* Pitfalls Section */}
+                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                        <h3 className="font-bold text-amber-800 text-sm flex items-center gap-2 mb-2">
+                            <AlertCircle size={16} /> Exam Tips
+                        </h3>
+                        <ul className="list-disc list-inside text-xs text-amber-900 space-y-1.5 font-medium leading-relaxed">
+                            <li><strong>Two-tailed:</strong> Split <Latex>\alpha</Latex> (e.g., <Latex>5\% \rightarrow 2.5\%</LateX> each tail).</li>
+                            <li><strong>Continuity Correction:</strong> Normal Approx requires <Latex>\pm 0.5</Latex> adjustment.</li>
+                            <li><strong>Wording:</strong> Always relate conclusion back to the scenario.</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+        };
+
+        const CalculatorTab = () => {
+            const [distType, setDistType] = useState('binomial'); 
+            const [tailType, setTailType] = useState('one-left'); 
+            
+            const [n, setN] = useState(20);
+            const [p, setP] = useState(0.5);
+            const [lambda, setLambda] = useState(5);
+            const [observed, setObserved] = useState(6);
+            const [sigLevel, setSigLevel] = useState(0.05);
+
+            const [result, setResult] = useState(null);
+
+            const handleCalculate = () => {
+                let pVal = 0;
+                let effectiveAlpha = sigLevel;
+
+                if (distType === 'binomial') {
+                    if (tailType === 'one-left') {
+                        pVal = binomCDF(n, p, observed);
+                    } else if (tailType === 'one-right') {
+                        pVal = 1 - binomCDF(n, p, observed - 1);
+                    } else {
+                        effectiveAlpha = sigLevel / 2;
+                        const pLeft = binomCDF(n, p, observed);
+                        const pRight = 1 - binomCDF(n, p, observed - 1);
+                        pVal = Math.min(pLeft, pRight);
+                    }
+                } else {
+                    if (tailType === 'one-left') {
+                        pVal = poissonCDF(lambda, observed);
+                    } else if (tailType === 'one-right') {
+                        pVal = 1 - poissonCDF(lambda, observed - 1);
+                    } else {
+                        effectiveAlpha = sigLevel / 2;
+                        const pLeft = poissonCDF(lambda, observed);
+                        const pRight = 1 - poissonCDF(lambda, observed - 1);
+                        pVal = Math.min(pLeft, pRight);
+                    }
+                }
+
+                const isReject = pVal < effectiveAlpha;
+
+                setResult({ pVal, isReject, effectiveAlpha });
+            };
+
+            return (
+                <div className="space-y-4 animate-[fadeIn_0.5s_ease-out]">
+                    
+                    {/* Input Section */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-indigo-50/50 p-3 border-b border-indigo-50">
+                           <h2 className="text-sm font-bold text-indigo-900 uppercase tracking-wide">Test Parameters</h2>
+                        </div>
+                        
+                        <div className="p-4 space-y-4">
+                            {/* Distribution Toggle */}
+                            <div className="flex bg-slate-100 p-1 rounded-lg">
+                                <button 
+                                    onClick={() => setDistType('binomial')}
+                                    className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1 ${distType === 'binomial' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+                                >
+                                    Binomial <Latex className="text-[10px] ml-1">B(n, p)</Latex>
+                                </button>
+                                <button 
+                                    onClick={() => setDistType('poisson')}
+                                    className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all flex items-center justify-center gap-1 ${distType === 'poisson' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+                                >
+                                    Poisson <Latex className="text-[10px] ml-1">Po(\lambda)</Latex>
+                                </button>
+                            </div>
+
+                            {/* Dynamic Inputs */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {distType === 'binomial' ? (
+                                    <>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                                <Latex>n</Latex> (Trials)
+                                            </label>
+                                            <input type="number" value={n} onChange={(e) => setN(parseInt(e.target.value))} className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                                <Latex>p</Latex> (Prob)
+                                            </label>
+                                            <input type="number" step="0.01" value={p} onChange={(e) => setP(parseFloat(e.target.value))} className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="col-span-2">
+                                        <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                            <Latex>\lambda</Latex> (Rate)
+                                        </label>
+                                        <input type="number" step="0.1" value={lambda} onChange={(e) => setLambda(parseFloat(e.target.value))} className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Test Config */}
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                    <Latex>H_1</Latex> Type
+                                </label>
+                                <select 
+                                    value={tailType} 
+                                    onChange={(e) => setTailType(e.target.value)}
+                                    className="w-full p-2 text-sm border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="one-left">Left-tailed (p &lt; ...)</option>
+                                    <option value="one-right">Right-tailed (p &gt; ...)</option>
+                                    <option value="two">Two-tailed (p ≠ ...)</option>
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                        Sig. Level <Latex>\alpha</Latex>
+                                    </label>
+                                    <select 
+                                        value={sigLevel} 
+                                        onChange={(e) => setSigLevel(parseFloat(e.target.value))}
+                                        className="w-full p-2 text-sm border border-slate-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                    >
+                                        <option value={0.10}>10% (0.10)</option>
+                                        <option value={0.05}>5% (0.05)</option>
+                                        <option value={0.025}>2.5% (0.025)</option>
+                                        <option value={0.01}>1% (0.01)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                                        Observed <Latex>X</Latex>
+                                    </label>
+                                    <input type="number" value={observed} onChange={(e) => setObserved(parseInt(e.target.value))} className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleCalculate}
+                                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-2 text-sm"
+                            >
+                                Test Significance <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Results Display */}
+                    {result && (
+                        <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden animate-[zoomIn_0.3s_ease-out]">
+                           <div className={`p-4 text-center ${result.isReject ? 'bg-rose-50' : 'bg-emerald-50'}`}>
+                              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${result.isReject ? 'bg-rose-200 text-rose-800' : 'bg-emerald-200 text-emerald-800'}`}>
+                                {result.isReject ? <AlertCircle size={14}/> : <CheckCircle size={14}/>}
+                                {result.isReject ? 'Significant' : 'Not Significant'}
+                              </div>
+                              <h3 className={`text-2xl font-black ${result.isReject ? 'text-rose-600' : 'text-emerald-600'} flex justify-center items-center gap-2`}>
+                                {result.isReject ? <span>Reject <Latex>H_0</Latex></span> : <span>Do Not Reject <Latex>H_0</Latex></span>}
+                              </h3>
+                              <p className="text-xs text-slate-500 mt-1">
+                                 {result.isReject ? 'Observation is in Critical Region' : 'Observation is NOT in Critical Region'}
+                              </p>
+                           </div>
+                           
+                           <div className="p-4 space-y-2 bg-white">
+                              <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
+                                 <span className="text-slate-500 font-medium flex items-center gap-1"><Latex>p</Latex>-value</span>
+                                 <span className="font-mono font-bold text-slate-800">{result.pVal.toFixed(4)}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
+                                 <span className="text-slate-500 font-medium flex items-center gap-1">Target <Latex>{`\\alpha${tailType === 'two' ? '/2' : ''}`}</Latex></span>
+                                 <span className="font-mono font-bold text-slate-800">{result.effectiveAlpha.toFixed(4)}</span>
+                              </div>
+                              <div className="pt-2">
+                                 <p className="text-[10px] text-slate-400 italic text-center flex justify-center items-center gap-1">
+                                   Since {result.pVal.toFixed(4)} {result.isReject ? '<' : '>'} {result.effectiveAlpha.toFixed(4)}
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const QuizTab = () => {
+            const [currentQ, setCurrentQ] = useState(0);
+            const [selected, setSelected] = useState(null);
+            const [showExplanation, setShowExplanation] = useState(false);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+
+            const questions = [
+                {
+                    id: 1,
+                    question: <span>In a 2-tailed test at <Latex>5\%</Latex> significance, what is the probability for each tail?</span>,
+                    options: ["0.05", "0.025", "0.01", "0.10"],
+                    correct: 1,
+                    explanation: <span>Significance level (<Latex>\alpha</Latex>) is split between two tails. <Latex>0.05 / 2 = 0.025</Latex>.</span>
+                },
+                {
+                    id: 2,
+                    question: <span>If <Latex>X \sim B(50, 0.4)</Latex> is approximated by Normal, what are the parameters?</span>,
+                    options: [<span><Latex>N(20, 12)</Latex></span>, <span><Latex>N(20, 20)</Latex></span>, <span><Latex>N(50, 12)</Latex></span>, <span><Latex>N(20, 0.4)</Latex></span>],
+                    correct: 0,
+                    explanation: <span><Latex>\mu = np = 20</Latex>. <Latex>\sigma^2 = np(1-p) = 20(0.6) = 12</Latex>.</span>
+                },
+                {
+                    id: 3,
+                    question: <span>Continuity correction for <Latex>P(X &gt; 25)</Latex> in Normal approx?</span>,
+                    options: [<span><Latex>P(Y &gt; 25)</Latex></span>, <span><Latex>P(Y &gt; 25.5)</Latex></span>, <span><Latex>P(Y &gt; 24.5)</Latex></span>, <span><Latex>P(Y \ge 25)</Latex></span>],
+                    correct: 1,
+                    explanation: <span>Discrete <Latex>&gt; 25</Latex> starts at 26. Lower bound of 26 is 25.5.</span>
+                },
+                {
+                    id: 4,
+                    question: <span>Observation falls in Critical Region. Conclusion?</span>,
+                    options: [<span>Reject <Latex>H_0</Latex></span>, <span>Accept <Latex>H_0</Latex></span>, <span>Change <Latex>\alpha</Latex></span>, <span><Latex>H_1</Latex> is true</span>],
+                    correct: 0,
+                    explanation: <span>In Critical Region = Significant Result = Reject Null Hypothesis.</span>
+                }
+            ];
+
+            const handleOptionClick = (index) => {
+                if (showExplanation) return;
+                setSelected(index);
+                setShowExplanation(true);
+                if (index === questions[currentQ].correct) {
+                    setScore(s => s + 1);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (currentQ < questions.length - 1) {
+                    setCurrentQ(c => c + 1);
+                    setSelected(null);
+                    setShowExplanation(false);
+                } else {
+                    setFinished(true);
+                }
+            };
+
+            const restart = () => {
+                setCurrentQ(0);
+                setSelected(null);
+                setShowExplanation(false);
+                setScore(0);
+                setFinished(false);
+            };
+
+            if (finished) {
+                return (
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-[zoomIn_0.3s_ease-out]">
+                        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 text-indigo-600 shadow-sm">
+                            <GraduationCap size={32} />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 mb-2">Quiz Finished!</h2>
+                        <p className="text-slate-500 mb-6 text-sm">Score: <span className="font-bold text-indigo-600 text-lg">{score}</span> / {questions.length}</p>
+                        <button 
+                            onClick={restart}
+                            className="w-full max-w-[200px] py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                );
+            }
+
+            const qData = questions[currentQ];
+
+            return (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full animate-[fadeIn_0.5s_ease-out]">
+                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                        <span className="text-slate-500 font-bold text-xs uppercase tracking-wider">Question {currentQ + 1}/{questions.length}</span>
+                        <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">Score: {score}</span>
+                    </div>
+                    
+                    <div className="p-4 flex-1 flex flex-col">
+                        <p className="text-base text-slate-800 font-bold mb-4 leading-snug">{qData.question}</p>
+                        
+                        <div className="space-y-2.5 mb-4">
+                            {qData.options.map((opt, idx) => {
+                                let itemClass = "w-full text-left p-3 rounded-lg border text-sm font-medium transition-all duration-200 ";
+                                
+                                if (showExplanation) {
+                                    if (idx === qData.correct) itemClass += "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm";
+                                    else if (idx === selected) itemClass += "border-rose-500 bg-rose-50 text-rose-800";
+                                    else itemClass += "border-slate-100 text-slate-400 opacity-60";
+                                } else {
+                                    itemClass += "border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 text-slate-600";
+                                }
+
+                                return (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => handleOptionClick(idx)}
+                                        className={itemClass}
+                                        disabled={showExplanation}
+                                    >
+                                        {opt}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {showExplanation && (
+                            <div className="mt-auto bg-slate-50 p-3 rounded-lg border border-slate-200 animate-[fadeIn_0.3s_ease-out]">
+                                <div className="flex gap-2 mb-2">
+                                    <div className="shrink-0 mt-0.5">
+                                        {selected === qData.correct ? <CheckCircle size={16} className="text-emerald-500"/> : <AlertCircle size={16} className="text-rose-500"/>}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800 text-xs mb-1">Explanation</h4>
+                                        <p className="text-xs text-slate-600 leading-relaxed">{qData.explanation}</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={nextQuestion}
+                                    className="w-full mt-2 bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 text-xs font-bold uppercase tracking-wide"
+                                >
+                                    {currentQ === questions.length - 1 ? "See Results" : "Next"}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('notes');
+
+            return (
+                <div className="min-h-screen flex justify-center py-4">
+                    <div className="w-full max-w-[450px] bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col min-h-[800px]">
+                        {/* Header */}
+                        <header className="bg-indigo-700 text-white p-5 shadow-lg shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white/10 p-2 rounded-lg">
+                                    <GraduationCap size={24} />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold leading-tight">Edexcel IAL S2</h1>
+                                    <p className="text-indigo-200 text-[10px] uppercase tracking-wider font-semibold">Hypothesis Testing</p>
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Navigation */}
+                        <div className="bg-white border-b border-slate-100 shrink-0 sticky top-0 z-10 flex text-xs font-medium text-slate-500">
+                            <button
+                                onClick={() => setActiveTab('notes')}
+                                className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
+                                    activeTab === 'notes' ? 'text-indigo-600 bg-indigo-50 border-b-2 border-indigo-600' : 'hover:bg-slate-50'
+                                }`}
+                            >
+                                <BookOpen size={18} /> Notes
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('calculator')}
+                                className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
+                                    activeTab === 'calculator' ? 'text-indigo-600 bg-indigo-50 border-b-2 border-indigo-600' : 'hover:bg-slate-50'
+                                }`}
+                            >
+                                <Calculator size={18} /> Simulator
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('quiz')}
+                                className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
+                                    activeTab === 'quiz' ? 'text-indigo-600 bg-indigo-50 border-b-2 border-indigo-600' : 'hover:bg-slate-50'
+                                }`}
+                            >
+                                <CheckCircle size={18} /> Quiz
+                            </button>
+                        </div>
+
+                        {/* Content Area */}
+                        <main className="flex-1 overflow-y-auto p-4 bg-slate-50">
+                            {activeTab === 'notes' && <NotesTab />}
+                            {activeTab === 'calculator' && <CalculatorTab />}
+                            {activeTab === 'quiz' && <QuizTab />}
+                        </main>
+                    </div>
+                </div>
+            );
         }
-    }, [children, displayMode]);
 
-    return <span ref={containerRef} className={className}></span>;
-};
-
-
-/* ---------------------------------------------------------
-   ORIGINAL APP (内容完全保留)
---------------------------------------------------------- */
-
-const App = () => {
-    const [tab, setTab] = React.useState("notes");
-
-    return (
-        <div className="flex flex-col gap-6">
-
-            {/* -------- header 保留原样 -------- */}
-            <div className="text-center">
-                <h1 className="text-3xl font-extrabold text-slate-800">Hypothesis Testing</h1>
-                <p className="text-slate-500 mt-1 text-sm">
-                    Understanding z-tests and rejection regions
-                </p>
-            </div>
-
-            {/* -------- Tabs -------- */}
-            <div className="flex justify-center gap-4 mb-2">
-                {["notes", "calc", "quiz"].map((t) => (
-                    <button
-                        key={t}
-                        onClick={() => setTab(t)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium ${
-                            tab === t
-                                ? "bg-blue-600 text-white shadow"
-                                : "bg-white border text-slate-600"
-                        }`}
-                    >
-                        {t === "notes" ? "Notes" : t === "calc" ? "Calculator" : "Quiz"}
-                    </button>
-                ))}
-            </div>
-
-            {/* ---------------- Notes ---------------- */}
-            {tab === "notes" && (
-                <div className="bg-white p-5 rounded-xl shadow-md">
-                    <h2 className="text-lg font-bold text-slate-800 mb-3">Key Idea</h2>
-
-                    <p className="text-sm leading-relaxed text-slate-700">
-                        The standardized test statistic is
-                    </p>
-
-                    <div className="text-center my-4 text-lg">
-                        <Latex displayMode={true}>
-                            {String.raw`\displaystyle z = \frac{\bar{x} - \mu_0}{\sigma / \sqrt{n}}`}
-                        </Latex>
-                    </div>
-
-                    <p className="text-sm text-slate-700">
-                        If $z$ falls in the rejection region, we reject $H_0$.
-                    </p>
-
-                    <h2 className="text-lg font-bold text-slate-800 mt-6 mb-2">Example</h2>
-                    <p className="text-sm text-slate-700">Suppose:</p>
-                    <ul className="text-sm text-slate-700 list-disc ml-6 mt-2">
-                        <li>
-                            Claim: <Latex>{`H_0: \\mu = 50`}</Latex>
-                        </li>
-                        <li>
-                            Sample mean: <Latex>{`\\bar{x} = 53`}</Latex>
-                        </li>
-                        <li>σ = 10, n = 36</li>
-                    </ul>
-
-                    <div className="text-center text-lg my-4">
-                        <Latex displayMode={true}>
-                            {String.raw`\displaystyle z = \frac{53 - 50}{10/\sqrt{36}} = 1.8`}
-                        </Latex>
-                    </div>
-
-                    <p className="text-sm text-slate-700">
-                        Critical values at 5% (two-tailed): ±1.96
-                    </p>
-                </div>
-            )}
-
-            {/* ---------------- Calculator 保留原样 ---------------- */}
-            {tab === "calc" && (
-                <div className="bg-white p-5 rounded-xl shadow-md">
-                    <h2 className="text-lg font-bold text-slate-800 mb-3">Calculator</h2>
-                    <p className="text-sm text-slate-700 mb-2">Compute your z-statistic:</p>
-
-                    <Calculator />
-                </div>
-            )}
-
-            {/* ---------------- Quiz 保留原样 ---------------- */}
-            {tab === "quiz" && (
-                <div className="bg-white p-5 rounded-xl shadow-md">
-                    <h2 className="text-lg font-bold text-slate-800 mb-4">Quick Quiz</h2>
-                    <Quiz />
-                </div>
-            )}
-        </div>
-    );
-};
-
-/* =========================================================
-   Calculator + Quiz (完全保留你的原始代码)
-========================================================= */
-
-function Calculator() {
-    const [xbar, setXbar] = React.useState("");
-    const [mu0, setMu0] = React.useState("");
-    const [sigma, setSigma] = React.useState("");
-    const [n, setN] = React.useState("");
-    const [z, setZ] = React.useState(null);
-
-    const compute = () => {
-        const result = (parseFloat(xbar) - parseFloat(mu0)) /
-            (parseFloat(sigma) / Math.sqrt(parseInt(n)));
-        setZ(result.toFixed(3));
-    };
-
-    return (
-        <div className="flex flex-col gap-3 text-sm">
-            <input placeholder="Sample mean x̄"
-                   value={xbar} onChange={e => setXbar(e.target.value)}
-                   className="border p-2 rounded" />
-            <input placeholder="Claimed mean μ₀"
-                   value={mu0} onChange={e => setMu0(e.target.value)}
-                   className="border p-2 rounded" />
-            <input placeholder="σ"
-                   value={sigma} onChange={e => setSigma(e.target.value)}
-                   className="border p-2 rounded" />
-            <input placeholder="Sample size n"
-                   value={n} onChange={e => setN(e.target.value)}
-                   className="border p-2 rounded" />
-
-            <button onClick={compute}
-                    className="mt-2 bg-blue-600 text-white p-2 rounded">
-                Compute z
-            </button>
-
-            {z !== null && (
-                <div className="mt-3 text-center text-lg font-bold text-blue-700">
-                    z = {z}
-                </div>
-            )}
-        </div>
-    );
-}
-
-function Quiz() {
-    const [ans, setAns] = React.useState("");
-
-    return (
-        <div className="text-sm">
-            <p>Critical value for a two-tailed 5% test?</p>
-
-            <input value={ans} onChange={e => setAns(e.target.value)}
-                   placeholder="Your answer"
-                   className="border p-2 rounded mt-2 w-full" />
-
-            {ans && (
-                <p className="mt-3 text-blue-700 font-semibold">
-                    Correct answer: ±1.96
-                </p>
-            )}
-        </div>
-    );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-
-</script>
-
-<!-- ================= FOOTER (固定，C 选项) ================= -->
-<footer className="py-8">
-    <div className="flex justify-center">
-        <div className="bg-white border border-slate-300 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition">
-            <img
-                src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
-                class="w-6 h-6 rounded-full"
-            />
-            <span class="text-xs text-slate-600 tracking-wide">
-                微积分福音 · 卓永鸿老师制作
-            </span>
-        </div>
-    </div>
-</footer>
-
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
