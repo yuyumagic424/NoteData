@@ -57,7 +57,8 @@
 </head>
 <body class="text-slate-800">
 
-    <div class="max-w-6xl mx-auto p-4 md:p-6">
+    <!-- 改成窄版：max-w-[480px] 而不是 max-w-6xl -->
+    <div class="max-w-[480px] mx-auto p-4 md:p-6">
         
         <!-- Header -->
         <header class="mb-6 text-center">
@@ -65,8 +66,8 @@
             <p class="text-slate-500 mt-1">Regardless of the parent distribution, the distribution of sample means tends to a Normal distribution.</p>
         </header>
 
-        <!-- Main Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Main Layout：拿掉 lg:grid-cols-12，让两栏上下排成竖版 -->
+        <div class="grid grid-cols-1 gap-6">
             
             <!-- LEFT COLUMN: Controls & Population (4 cols) -->
             <div class="lg:col-span-4 space-y-6">
@@ -96,21 +97,21 @@
                         <div id="binomialParams" class="hidden">
                             <label class="block text-xs font-semibold text-slate-500 mb-1">Probability ($p$)</label>
                             <div class="flex gap-2">
-                                <button onclick="setParam('p', 0.1)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.1</button>
-                                <button onclick="setParam('p', 0.3)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.3</button>
+                                <button onclick="setParam('p', 0.1)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">0.1</button>
+                                <button onclick="setParam('p', 0.3)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">0.3</button>
                                 <button onclick="setParam('p', 0.5)" class="param-btn px-2 py-1 text-xs bg-blue-600 text-white border border-blue-600 rounded">0.5</button>
-                                <button onclick="setParam('p', 0.7)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.7</button>
-                                <button onclick="setParam('p', 0.9)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">0.9</button>
+                                <button onclick="setParam('p', 0.7)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">0.7</button>
+                                <button onclick="setParam('p', 0.9)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">0.9</button>
                             </div>
                         </div>
                         <!-- Poisson Lambda -->
                         <div id="poissonParams" class="hidden">
                             <label class="block text-xs font-semibold text-slate-500 mb-1">Lambda ($\lambda$)</label>
                             <div class="flex gap-2">
-                                <button onclick="setParam('l', 1)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">1</button>
-                                <button onclick="setParam('l', 3)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">3</button>
+                                <button onclick="setParam('l', 1)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">1</button>
+                                <button onclick="setParam('l', 3)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">3</button>
                                 <button onclick="setParam('l', 5)" class="param-btn px-2 py-1 text-xs bg-blue-600 text-white border border-blue-600 rounded">5</button>
-                                <button onclick="setParam('l', 10)" class="param-btn px-2 py-1 text-xs bg-white border rounded hover:bg-blue-50">10</button>
+                                <button onclick="setParam('l', 10)" class="param-btn px-2 py-1 text-xs bg白 border rounded hover:bg-blue-50">10</button>
                             </div>
                         </div>
                     </div>
@@ -147,7 +148,7 @@
                     </button>
                 </div>
 
-                <!-- 2. Population Visualizer (New) -->
+                <!-- 2. Population Visualizer -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                     <h2 class="text-sm font-bold text-slate-800 mb-2">Population Shape ($X$)</h2>
                     <p class="text-xs text-slate-500 mb-3">Theoretical distribution of a single observation.</p>
@@ -210,6 +211,23 @@
 
             </div>
         </div>
+
+        <!-- Footer：加上你喜歡的 pill footer -->
+        <footer class="py-6">
+            <div class="flex justify-center">
+                <div class="bg-white border border-slate-200 rounded-full px-5 py-2 shadow-sm flex items-center gap-3 hover:shadow-md transition-shadow duration-300">
+                    <img 
+                        src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
+                        alt="微积分福音 Logo"
+                        class="w-6 h-6 rounded-full object-contain"
+                    >
+                    <span class="text-xs text-slate-600 tracking-wide">
+                        微积分福音 · 卓永鸿老师制作
+                    </span>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
     <!-- Application Logic -->
@@ -359,186 +377,4 @@
                     for(let i=1; i<=k; i++) fact *= i;
                     data.push((Math.pow(lam, k) * Math.exp(-lam)) / fact);
                 }
-            } else if (state.dist === 'exponential') {
-                type = 'line';
-                for(let x=0; x<=5; x+=0.2) {
-                    labels.push(x.toFixed(1));
-                    data.push(Math.exp(-x)); // Lambda fixed at 1 for visual
-                }
-            } else if (state.dist === 'bimodal') {
-                type = 'line';
-                for(let x=0; x<=10; x+=0.2) {
-                    labels.push(x.toFixed(1));
-                    // PDF of 0.5*N(2,0.5) + 0.5*N(8,0.5)
-                    let y1 = (1/(0.5*Math.sqrt(2*Math.PI))) * Math.exp(-0.5 * ((x-2)/0.5)**2);
-                    let y2 = (1/(0.5*Math.sqrt(2*Math.PI))) * Math.exp(-0.5 * ((x-8)/0.5)**2);
-                    data.push(0.5*y1 + 0.5*y2);
-                }
-            }
-
-            if(popChart) popChart.destroy();
-            popChart = new Chart(ctx, {
-                type: type,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        borderColor: borderColor,
-                        backgroundColor: bgColor,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.2,
-                        fill: type === 'line' // Fill area for continuous
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                    scales: {
-                        x: { display: true, grid: { display: false }, ticks: { font: { size: 9 } } },
-                        y: { display: false, beginAtZero: true }
-                    },
-                    animation: { duration: 0 } // No animation for instant toggle
-                }
-            });
-        }
-
-        // --- Main Simulation Logic ---
-        function runSimulation() {
-            // Re-read inputs just in case
-            updateLabels();
-            const n = state.n;
-            const k = simOptions[state.simIndex];
-            
-            // 1. Generate Samples
-            const means = [];
-            let grandSum = 0;
-
-            for(let i=0; i<k; i++) {
-                let sampleSum = 0;
-                for(let j=0; j<n; j++) {
-                    let val = 0;
-                    switch(state.dist) {
-                        case 'uniform': val = RNG.uniform(); break;
-                        case 'binomial': val = RNG.binomial(10, state.params.p); break; // N=10 fixed for "Population"
-                        case 'poisson': val = RNG.poisson(state.params.lambda); break;
-                        case 'exponential': val = RNG.exponential(1); break;
-                        case 'bimodal': val = RNG.bimodal(); break;
-                    }
-                    sampleSum += val;
-                }
-                const mean = sampleSum / n;
-                means.push(mean);
-                grandSum += mean;
-            }
-
-            // 2. Statistics
-            const meanOfMeans = grandSum / k;
-            const variance = means.reduce((acc, val) => acc + (val - meanOfMeans)**2, 0) / k;
-            const stdDev = Math.sqrt(variance);
-
-            // 3. Binning for Histogram
-            // Smart binning based on distribution spread
-            const min = Math.min(...means);
-            const max = Math.max(...means);
-            // Ensure non-zero range
-            const range = (max - min) || 1; 
-            const binCount = 40;
-            const binWidth = range / binCount;
-
-            const bins = new Array(binCount).fill(0);
-            const labels = [];
-            
-            // Create labels (midpoints)
-            for(let i=0; i<binCount; i++) labels.push((min + i*binWidth + binWidth/2).toFixed(2));
-
-            // Fill
-            means.forEach(m => {
-                let idx = Math.floor((m - min) / binWidth);
-                if (idx >= binCount) idx = binCount - 1;
-                bins[idx]++;
-            });
-
-            // 4. Normal Curve Overlay
-            const normalData = labels.map(label => {
-                const x = parseFloat(label);
-                const exponent = -0.5 * Math.pow((x - meanOfMeans) / stdDev, 2);
-                const pdf = (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
-                return pdf * k * binWidth; // Scale to match frequency counts
-            });
-
-            updateMainChart(labels, bins, normalData);
-        }
-
-        function updateMainChart(labels, barData, lineData) {
-            const ctx = document.getElementById('cltChart').getContext('2d');
-            if(mainChart) mainChart.destroy();
-
-            mainChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Normal Approx',
-                            data: lineData,
-                            type: 'line',
-                            borderColor: '#dc2626', // Red-600
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            tension: 0.4,
-                            order: 1
-                        },
-                        {
-                            label: 'Simulated Frequency',
-                            data: barData,
-                            backgroundColor: 'rgba(59, 130, 246, 0.6)', // Blue-500
-                            borderColor: '#2563eb',
-                            borderWidth: 1,
-                            barPercentage: 1.0,
-                            categoryPercentage: 1.0,
-                            order: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { 
-                            callbacks: {
-                                title: (items) => `Mean ≈ ${items[0].label}`,
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { 
-                            ticks: { maxTicksLimit: 8, font: {size: 10} }, 
-                            grid: { display: false } 
-                        },
-                        y: { 
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' }
-                        }
-                    },
-                    animation: {
-                        duration: 800,
-                        easing: 'easeOutQuart'
-                    }
-                }
-            });
-        }
-
-        // Init
-        // Ensure MathJax renders after load
-        window.addEventListener('load', () => {
-            updateUI(); 
-            runSimulation();
-        });
-
-    </script>
-</body>
-</html>
+            } else if (state.dist === 'exponential')
