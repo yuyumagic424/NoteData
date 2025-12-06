@@ -165,8 +165,8 @@
                             </div>
 
                             {/* Standardized Pill Footer inside the card */}
-                            <div className="mt-8 flex justify-center">
-                                <div className="bg-white border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
+                            <div className="mt-8 flex justify中心">
+                                <div className="bg白 border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
                                     <img 
                                         src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png" 
                                         alt="Logo" 
@@ -246,7 +246,7 @@
                     </div>
 
                     <div 
-                        className={`card-flip relative w-full max-w-[320px] h-64 cursor-pointer ${isFlipped ? 'flipped' : ''}`}
+                        className={`card-flip relative w-full max-w-[480px] aspect-[3/4] cursor-pointer mx-auto ${isFlipped ? 'flipped' : ''}`}
                         onClick={() => setIsFlipped(!isFlipped)}
                     >
                         <div className="card-inner">
@@ -265,7 +265,7 @@
                             </div>
 
                             {/* Back */}
-                            <div className="card-back bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md flex flex-col items-center justify-center p-6 text-white border-2 border-blue-600">
+                            <div className="card-back bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md flex flex-col items-center justify-center p-6 text白 border-2 border-blue-600">
                                 <h3 className="text-blue-100 mb-6 text-xs uppercase tracking-widest font-semibold">答案</h3>
                                 <div className="text-3xl font-bold text-center drop-shadow-md">
                                     <Latex className="text-white">{currentCard.deriv}</Latex>
@@ -283,7 +283,7 @@
                         </button>
                         <button 
                             onClick={(e) => { e.stopPropagation(); nextCard(); }}
-                            className="p-3 rounded-full bg-white shadow-sm border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 transition z-10"
+                            className="p-3 rounded-full bg白 shadow-sm border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-blue-600 transition z-10"
                         >
                             <Icon name="arrow-right" size={20} />
                         </button>
