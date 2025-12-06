@@ -113,13 +113,34 @@
             return sum;
         };
 
-        // --- LATEX COMPONENT ---
+        // --- LATEX COMPONENT (Fixed for Mobile Loading) ---
 
         const Latex = ({ children, displayMode = false, className = "" }) => {
             const containerRef = useRef(null);
+            const [isKatexLoaded, setIsKatexLoaded] = useState(false);
             
             useEffect(() => {
-                if (window.katex && containerRef.current) {
+                // 1. If already loaded, set state immediately
+                if (window.katex) {
+                    setIsKatexLoaded(true);
+                    return;
+                }
+
+                // 2. If not loaded, poll every 100ms until it exists
+                // This fixes the mobile "blank math" issue where scripts load slower than React renders
+                const intervalId = setInterval(() => {
+                    if (window.katex) {
+                        setIsKatexLoaded(true);
+                        clearInterval(intervalId);
+                    }
+                }, 100);
+
+                // Cleanup interval on unmount
+                return () => clearInterval(intervalId);
+            }, []);
+
+            useEffect(() => {
+                if (isKatexLoaded && window.katex && containerRef.current) {
                     try {
                         window.katex.render(children, containerRef.current, {
                             throwOnError: false,
@@ -131,8 +152,10 @@
                         containerRef.current.textContent = children;
                     }
                 }
-            }, [children, displayMode]);
+            }, [children, displayMode, isKatexLoaded]);
 
+            // Render an empty span that gets filled by KaTeX. 
+            // While loading, it stays empty (or we could show loading state), preventing crash.
             return <span ref={containerRef} className={className}></span>;
         };
 
@@ -641,6 +664,20 @@
                             {activeTab === 'notes' && <NotesTab />}
                             {activeTab === 'calculator' && <CalculatorTab />}
                             {activeTab === 'quiz' && <QuizTab />}
+                            
+                            {/* --- Footer Added Here --- */}
+                            <div className="mt-8 flex justify-center pb-6">
+                                <div className="bg-white border border-gray-200 rounded-full px-5 py-2 flex items-center shadow-sm gap-3 hover:shadow-md transition-shadow duration-300">
+                                    <img 
+                                        src="https://img.calcgospel.top/PicList/202512/c9ba5099657621ce60b55f0cfb0e7457.png"
+                                        className="w-6 h-6 object-contain rounded-full"
+                                        alt="Logo"
+                                    />
+                                    <span className="text-xs text-gray-500 font-medium tracking-wide">
+                                        微积分福音 卓永鸿老师制作
+                                    </span>
+                                </div>
+                            </div>
                         </main>
                     </div>
                 </div>
